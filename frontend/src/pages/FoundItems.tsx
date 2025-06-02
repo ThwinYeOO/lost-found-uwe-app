@@ -1,0 +1,57 @@
+import React from 'react';
+import {
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Button,
+  Box,
+} from '@mui/material';
+
+const FoundItems: React.FC = () => {
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Found Items
+      </Typography>
+      
+      <Box sx={{ mb: 4 }}>
+        <Button variant="contained" color="primary">
+          Report Found Item
+        </Button>
+      </Box>
+
+      <Grid container spacing={3}>
+        {/* Example found item card */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardMedia
+              component="img"
+              height="140"
+              image="https://via.placeholder.com/140"
+              alt="Found item"
+            />
+            <CardContent>
+              <Typography gutterBottom variant="h5" component="div">
+                Found Item Title
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Description of the found item. This is where you would put details about the item.
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Location Found: UWE Frenchay Campus
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Date Found: 2024-03-20
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
+  );
+};
+
+export default FoundItems; 
