@@ -65,6 +65,13 @@ const Navbar: React.FC = () => {
             >
               About Us
             </Button>
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/contact"
+            >
+              Contact Us
+            </Button>
             {isLoggedIn ? (
               <>
                 <IconButton
