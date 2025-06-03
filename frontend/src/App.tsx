@@ -10,6 +10,8 @@ import FoundItems from './pages/FoundItems';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AboutUs from './pages/AboutUs';
+import Profile from './pages/Profile';
 
 // Create theme
 const theme = createTheme({
@@ -42,6 +44,8 @@ function App() {
             <Route path="/found" element={<FoundItems />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </Router>
       </LocalizationProvider>
