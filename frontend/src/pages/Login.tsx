@@ -9,13 +9,15 @@ import {
   Link,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/firestore';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    emailOrName: '',
     password: '',
   });
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,8 +29,15 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic with Firebase
-    console.log('Login attempt:', formData);
+    setError(null);
+    try {
+      const user = await loginUser(formData.emailOrName, formData.password);
+      // Store user info in localStorage/session if needed
+      localStorage.setItem('user', JSON.stringify(user));
+      navigate('/'); // Redirect to home or dashboard
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    }
   };
 
   return (
@@ -42,12 +51,12 @@ const Login: React.FC = () => {
             margin="normal"
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
+            id="emailOrName"
+            label="Email Address or Name"
+            name="emailOrName"
             autoComplete="email"
             autoFocus
-            value={formData.email}
+            value={formData.emailOrName}
             onChange={handleChange}
           />
           <TextField
@@ -79,6 +88,7 @@ const Login: React.FC = () => {
               Don't have an account? Sign Up
             </Link>
           </Box>
+          {error && <Typography color="error" align="center">{error}</Typography>}
         </Box>
       </Paper>
     </Container>

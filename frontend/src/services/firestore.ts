@@ -125,6 +125,38 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<string> =>
   }
 };
 
+export const registerUser = async (userData: Omit<User, 'id'> & { password: string }) => {
+  // Check if email already exists
+  const response = await fetch(`${API_BASE_URL}/users`);
+  const users = await response.json();
+  const exists = users.some((u: any) => u.email === userData.email);
+  if (exists) {
+    throw new Error('Email already exists');
+  }
+  // Add user
+  const res = await fetch(`${API_BASE_URL}/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData),
+  });
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.details || 'Failed to register user');
+  }
+  return await res.json();
+};
+
+export const loginUser = async (identifier: string, password: string) => {
+  // identifier can be email or name
+  const response = await fetch(`${API_BASE_URL}/users`);
+  const users = await response.json();
+  const user = users.find((u: any) => (u.email === identifier || u.name === identifier) && u.password === password);
+  if (!user) {
+    throw new Error('Invalid credentials');
+  }
+  return user;
+};
+
 // Helper functions for Lost and Found items
 export const getLostItems = async (): Promise<Item[]> => {
   return getItems('Lost');
@@ -140,4 +172,24 @@ export const searchLostItems = async (searchQuery: string): Promise<Item[]> => {
 
 export const searchFoundItems = async (searchQuery: string): Promise<Item[]> => {
   return searchItems('Found', searchQuery);
+};
+
+export const getUserItems = async (userId: string, type: 'Lost' | 'Found'): Promise<Item[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/items?type=${type}&reportUserId=${encodeURIComponent(userId)}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || `Failed to fetch ${type} items for user`);
+    }
+
+    const data = await response.json();
+    return data.map((item: any) => ({
+      ...item,
+      dateLostFound: item.dateLostFound ? new Date(item.dateLostFound) : undefined
+    }));
+  } catch (error) {
+    console.error(`Error getting user's ${type} items:`, error);
+    throw error;
+  }
 }; 

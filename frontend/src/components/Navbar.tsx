@@ -11,13 +11,14 @@ import {
   MenuItem,
   Avatar,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AccountCircle } from '@mui/icons-material';
 
 const Navbar: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  // Mock authentication state - replace with actual auth state
-  const [isLoggedIn] = useState(true);
+  const navigate = useNavigate();
+  // Check authentication state based on localStorage
+  const isLoggedIn = !!localStorage.getItem('user');
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -25,6 +26,12 @@ const Navbar: React.FC = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user'); // Clear user data from localStorage
+    handleClose(); // Close the menu
+    navigate('/login'); // Redirect to login page
   };
 
   return (
@@ -106,7 +113,7 @@ const Navbar: React.FC = () => {
                   >
                     Profile
                   </MenuItem>
-                  <MenuItem onClick={handleClose}>Logout</MenuItem>
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
               </>
             ) : (

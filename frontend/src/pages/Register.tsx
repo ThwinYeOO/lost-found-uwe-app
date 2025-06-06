@@ -10,6 +10,7 @@ import {
   Grid,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/firestore';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +21,10 @@ const Register: React.FC = () => {
     password: '',
     confirmPassword: '',
     studentId: '',
+    phoneNumber: '',
   });
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,8 +36,25 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement registration logic with Firebase
-    console.log('Registration attempt:', formData);
+    setError(null);
+    setSuccess(null);
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    try {
+      await registerUser({
+        name: formData.firstName + ' ' + formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        uweId: formData.studentId,
+      });
+      setSuccess('Registration successful! You can now log in.');
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    }
   };
 
   return (
@@ -116,6 +137,17 @@ const Register: React.FC = () => {
                 onChange={handleChange}
               />
             </Grid>
+            <Grid item xs={12}>
+              <TextField
+                required
+                fullWidth
+                id="phoneNumber"
+                label="Phone Number"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+              />
+            </Grid>
           </Grid>
           <Button
             type="submit"
@@ -134,6 +166,8 @@ const Register: React.FC = () => {
               Already have an account? Sign In
             </Link>
           </Box>
+          {error && <Typography color="error" align="center">{error}</Typography>}
+          {success && <Typography color="primary" align="center">{success}</Typography>}
         </Box>
       </Paper>
     </Container>

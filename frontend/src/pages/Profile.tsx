@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -26,6 +26,11 @@ import {
   History as HistoryIcon,
   Search as SearchIcon,
 } from '@mui/icons-material';
+import { User, Item } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { getUserItems } from '../services/firestore';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -51,45 +56,54 @@ function TabPanel(props: TabPanelProps) {
 
 const Profile: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
+  const navigate = useNavigate();
 
-  // Mock user data - replace with actual user data from your auth system
-  const userData = {
-    name: 'John Doe',
-    email: 'john.doe@uwe.ac.uk',
-    phone: '+44 1234 567890',
-    studentId: 'UWE12345678',
-    department: 'Computer Science',
-    avatar: null, // URL to user's avatar if available
-  };
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [lostItems, setLostItems] = useState<Item[]>([]);
+  const [foundItems, setFoundItems] = useState<Item[]>([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
 
-  // Mock reported items - replace with actual data from your database
-  const reportedItems = {
-    lost: [
-      {
-        id: 1,
-        itemName: 'MacBook Pro',
-        dateReported: new Date('2024-03-15'),
-        status: 'Lost',
-        location: 'Frenchay Campus',
-      },
-      {
-        id: 2,
-        itemName: 'Student ID Card',
-        dateReported: new Date('2024-03-18'),
-        status: 'Found',
-        location: 'Glenside Campus',
-      },
-    ],
-    found: [
-      {
-        id: 3,
-        itemName: 'iPhone 13',
-        dateReported: new Date('2024-03-19'),
-        status: 'Available',
-        location: 'Frenchay Campus',
-      },
-    ],
-  };
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user: User = JSON.parse(storedUser);
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        localStorage.removeItem('user');
+        navigate('/login');
+      }
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchUserItems = async () => {
+      if (!currentUser) return;
+
+      setLoadingItems(true);
+      setItemsError(null);
+      try {
+        if (tabValue === 0) {
+          const items = await getUserItems(currentUser.id!, 'Lost');
+          setLostItems(items);
+        } else {
+          const items = await getUserItems(currentUser.id!, 'Found');
+          setFoundItems(items);
+        }
+      } catch (err: any) {
+        console.error('Error fetching user items:', err);
+        setItemsError('Failed to fetch your reported items.');
+      } finally {
+        setLoadingItems(false);
+      }
+    };
+
+    fetchUserItems();
+  }, [tabValue, currentUser]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -104,12 +118,12 @@ const Profile: React.FC = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
               <Avatar
                 sx={{ width: 100, height: 100, mb: 2 }}
-                src={userData.avatar || undefined}
+                src={currentUser?.avatar || undefined}
               >
-                {!userData.avatar && <PersonIcon sx={{ fontSize: 60 }} />}
+                {!currentUser?.avatar && <PersonIcon sx={{ fontSize: 60 }} />}
               </Avatar>
               <Typography variant="h5" gutterBottom>
-                {userData.name}
+                {currentUser?.name || 'N/A'}
               </Typography>
               <Button
                 variant="outlined"
@@ -125,13 +139,13 @@ const Profile: React.FC = () => {
                 <ListItemIcon>
                   <EmailIcon />
                 </ListItemIcon>
-                <ListItemText primary="Email" secondary={userData.email} />
+                <ListItemText primary="Email" secondary={currentUser?.email || 'N/A'} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
                   <PhoneIcon />
                 </ListItemIcon>
-                <ListItemText primary="Phone" secondary={userData.phone} />
+                <ListItemText primary="Phone Number" secondary={currentUser?.phoneNumber || 'N/A'} />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
@@ -139,7 +153,7 @@ const Profile: React.FC = () => {
                 </ListItemIcon>
                 <ListItemText
                   primary="Student ID"
-                  secondary={userData.studentId}
+                  secondary={currentUser?.uweId || 'N/A'}
                 />
               </ListItem>
             </List>
@@ -161,42 +175,22 @@ const Profile: React.FC = () => {
 
             {/* Lost Items Tab */}
             <TabPanel value={tabValue} index={0}>
-              {reportedItems.lost.map((item) => (
+              {loadingItems && <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>}
+              {itemsError && <Alert severity="error">{itemsError}</Alert>}
+              {!loadingItems && !itemsError && lostItems.length === 0 && (
+                <Typography align="center">No lost items reported yet.</Typography>
+              )}
+              {!loadingItems && !itemsError && lostItems.map((item) => (
                 <Card key={item.id} sx={{ mb: 2 }}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      {item.itemName}
+                      {item.name}
                     </Typography>
                     <Typography color="textSecondary" gutterBottom>
-                      Date Reported: {item.dateReported.toLocaleDateString()}
+                      Date Lost: {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
                     </Typography>
                     <Typography color="textSecondary" gutterBottom>
-                      Location: {item.location}
-                    </Typography>
-                    <Typography
-                      color={item.status === 'Found' ? 'success.main' : 'error.main'}
-                      sx={{ fontWeight: 'bold' }}
-                    >
-                      Status: {item.status}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
-            </TabPanel>
-
-            {/* Found Items Tab */}
-            <TabPanel value={tabValue} index={1}>
-              {reportedItems.found.map((item) => (
-                <Card key={item.id} sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      {item.itemName}
-                    </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      Date Reported: {item.dateReported.toLocaleDateString()}
-                    </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      Location: {item.location}
+                      Location: {item.locationLostFound}
                     </Typography>
                     <Typography
                       color={item.status === 'Available' ? 'success.main' : 'error.main'}
@@ -204,6 +198,69 @@ const Profile: React.FC = () => {
                     >
                       Status: {item.status}
                     </Typography>
+                    {item.phoneNumber && (
+                      <Typography color="textSecondary" gutterBottom>
+                        Contact: {item.phoneNumber}
+                      </Typography>
+                    )}
+                    {item.imageUrl && (
+                      <Box sx={{ mt: 2 }}>
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          style={{ maxWidth: '100%', height: 'auto' }}
+                        />
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </TabPanel>
+
+            {/* Found Items Tab */}
+            <TabPanel value={tabValue} index={1}>
+              {loadingItems && <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>}
+              {itemsError && <Alert severity="error">{itemsError}</Alert>}
+              {!loadingItems && !itemsError && foundItems.length === 0 && (
+                <Typography align="center">No found items reported yet.</Typography>
+              )}
+              {!loadingItems && !itemsError && foundItems.map((item) => (
+                <Card key={item.id} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {item.name}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Date Found: {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
+                    </Typography>
+                    <Typography color="textSecondary" gutterBottom>
+                      Location: {item.locationLostFound}
+                    </Typography>
+                    <Typography
+                      color={item.status === 'Available' ? 'success.main' : 'error.main'}
+                      sx={{ fontWeight: 'bold' }}
+                    >
+                      Status: {item.status}
+                    </Typography>
+                    {item.phoneNumber && (
+                      <Typography color="textSecondary" gutterBottom>
+                        Contact: {item.phoneNumber}
+                      </Typography>
+                    )}
+                    {item.imageUrl && (
+                      <Box sx={{ mt: 2 }}>
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          style={{ maxWidth: '100%', height: 'auto' }}
+                        />
+                      </Box>
+                    )}
+                    {item.reportName && (
+                      <Typography color="textSecondary" gutterBottom>
+                        Reporter's Name: {item.reportName}
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               ))}

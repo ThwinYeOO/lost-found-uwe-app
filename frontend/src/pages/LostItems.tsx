@@ -8,15 +8,16 @@ import {
   CardContent,
   Grid,
   TextField,
+  InputAdornment,
   CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Alert,
-  Chip,
 } from '@mui/material';
 import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import LostItemForm, { LostItemData } from '../components/LostItemForm';
 import { getLostItems, searchLostItems, addItem } from '../services/firestore';
 import { Item } from '../types';
 
@@ -27,15 +28,15 @@ const LostItems: React.FC = () => {
   const [openForm, setOpenForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [newItem, setNewItem] = useState({
-    itemName: '',
-    category: '',
-    location: '',
-    dateLostFound: new Date(),
+    name: '',
     description: '',
-    contactInfo: '',
+    locationLostFound: '',
+    dateLostFound: new Date(),
+    imageUrl: '',
+    phoneNumber: '',
     status: 'Lost',
-    type: 'Lost' as const,
-    userId: 'current-user-id', // TODO: Replace with actual user ID
+    type: 'Lost',
+    reportUserId: 'current-user-id', // TODO: Replace with actual user ID
   });
 
   const fetchLostItems = async () => {
@@ -65,17 +66,6 @@ const LostItems: React.FC = () => {
       await addItem(newItem);
       await fetchLostItems(); // Refresh the list after adding a new item
       handleCloseForm();
-      setNewItem({
-        itemName: '',
-        category: '',
-        location: '',
-        dateLostFound: new Date(),
-        description: '',
-        contactInfo: '',
-        status: 'Lost',
-        type: 'Lost',
-        userId: 'current-user-id',
-      });
     } catch (err) {
       setError('Failed to add item. Please try again.');
       console.error('Error adding item:', err);
@@ -105,6 +95,16 @@ const LostItems: React.FC = () => {
     );
   }
 
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography color="error" align="center">
+          {error}
+        </Typography>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
@@ -121,12 +121,6 @@ const LostItems: React.FC = () => {
         </Button>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 4 }}>
-          {error}
-        </Alert>
-      )}
-
       <Box component="form" onSubmit={handleSearch} sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs>
@@ -136,11 +130,6 @@ const LostItems: React.FC = () => {
               placeholder="Search lost items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-                ),
-              }}
             />
           </Grid>
           <Grid item>
@@ -156,43 +145,36 @@ const LostItems: React.FC = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {lostItems.length === 0 ? (
-          <Grid item xs={12}>
-            <Typography align="center" color="textSecondary">
-              No lost items found
-            </Typography>
+        {lostItems.map((item) => (
+          <Grid item xs={12} sm={6} md={4} key={item.id}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  {item.name}
+                </Typography>
+                <Typography color="textSecondary" gutterBottom>
+                  Location: {item.locationLostFound}
+                </Typography>
+                <Typography color="textSecondary" gutterBottom>
+                  Date Lost: {new Date(item.dateLostFound).toLocaleDateString()}
+                </Typography>
+                <Typography color="textSecondary" gutterBottom>
+                  Contact: {item.phoneNumber}
+                </Typography>
+                <Typography variant="body2">{item.description}</Typography>
+                {item.imageUrl && (
+                  <Box sx={{ mt: 2 }}>
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
-        ) : (
-          lostItems.map((item) => (
-            <Grid item xs={12} sm={6} md={4} key={item.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {item.itemName}
-                  </Typography>
-                  <Chip
-                    label={item.category}
-                    color="primary"
-                    size="small"
-                    sx={{ mb: 1 }}
-                  />
-                  <Typography color="textSecondary" gutterBottom>
-                    Location: {item.location}
-                  </Typography>
-                  <Typography color="textSecondary" gutterBottom>
-                    Date Lost: {item.dateLostFound?.toLocaleDateString()}
-                  </Typography>
-                  <Typography variant="body2" paragraph>
-                    {item.description}
-                  </Typography>
-                  <Typography variant="body2" color="primary">
-                    Contact: {item.contactInfo}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))
-        )}
+        ))}
       </Grid>
 
       <Dialog open={openForm} onClose={handleCloseForm} maxWidth="sm" fullWidth>
@@ -204,20 +186,9 @@ const LostItems: React.FC = () => {
                 <TextField
                   fullWidth
                   label="Item Name"
-                  value={newItem.itemName}
+                  value={newItem.name}
                   onChange={(e) =>
-                    setNewItem({ ...newItem, itemName: e.target.value })
-                  }
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Category"
-                  value={newItem.category}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, category: e.target.value })
+                    setNewItem({ ...newItem, name: e.target.value })
                   }
                   required
                 />
@@ -239,9 +210,9 @@ const LostItems: React.FC = () => {
                 <TextField
                   fullWidth
                   label="Location Lost"
-                  value={newItem.location}
+                  value={newItem.locationLostFound}
                   onChange={(e) =>
-                    setNewItem({ ...newItem, location: e.target.value })
+                    setNewItem({ ...newItem, locationLostFound: e.target.value })
                   }
                   required
                 />
@@ -249,10 +220,36 @@ const LostItems: React.FC = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Contact Information"
-                  value={newItem.contactInfo}
+                  label="Phone Number"
+                  value={newItem.phoneNumber}
                   onChange={(e) =>
-                    setNewItem({ ...newItem, contactInfo: e.target.value })
+                    setNewItem({ ...newItem, phoneNumber: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  type="datetime-local"
+                  label="Date Lost"
+                  value={newItem.dateLostFound.toISOString().slice(0, 16)}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, dateLostFound: new Date(e.target.value) })
+                  }
+                  required
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Image URL"
+                  value={newItem.imageUrl}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, imageUrl: e.target.value })
                   }
                   required
                 />

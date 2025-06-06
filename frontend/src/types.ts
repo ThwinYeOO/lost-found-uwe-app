@@ -1,22 +1,22 @@
 export interface Item {
-  id: string;
-  itemName: string;
-  category: string;
-  location: string;
+  id?: string;  // Auto-generated
   dateLostFound: Date;
   description: string;
-  contactInfo: string;
+  imageUrl: string;
+  locationLostFound: string;
+  name: string;
+  phoneNumber: string;
+  reportUserId: string;
+  reportName?: string;
   status: string;
-  type: 'Lost' | 'Found';
-  userId: string;
-  createdAt?: Date;
+  type: string;
 }
 
 export interface User {
-  id: string;
+  id?: string;  // Auto-generated
   email: string;
-  displayName: string;
-  studentId: string;
+  name: string;
   phoneNumber: string;
-  createdAt: Date;
+  uweId: string;
+  avatar?: string;
 } 

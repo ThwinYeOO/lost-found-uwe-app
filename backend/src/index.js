@@ -45,11 +45,19 @@ app.get('/api/test', (req, res) => {
 // Routes
 app.get('/api/items', async (req, res) => {
   try {
-    const { type } = req.query;
-    console.log('Fetching items with type:', type);
+    const { type, reportUserId } = req.query;
+    console.log('Fetching items with type:', type, 'and reportUserId:', reportUserId);
     
     const itemsRef = db.collection('items');
-    const query = type ? itemsRef.where('type', '==', type) : itemsRef;
+    let query = itemsRef;
+
+    if (type) {
+      query = query.where('type', '==', type);
+    }
+    if (reportUserId) {
+      query = query.where('reportUserId', '==', reportUserId);
+    }
+
     const snapshot = await query.get();
     
     const items = [];
