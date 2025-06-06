@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -8,67 +8,102 @@ import {
   CardContent,
   Grid,
   TextField,
-  InputAdornment,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Chip,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import SearchIcon from '@mui/icons-material/Search';
-import LostItemForm, { LostItemData } from '../components/LostItemForm';
+import { Add as AddIcon, Search as SearchIcon } from '@mui/icons-material';
+import { getLostItems, searchLostItems, addItem } from '../services/firestore';
+import { Item } from '../types';
 
 const LostItems: React.FC = () => {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [lostItems, setLostItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openForm, setOpenForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [lostItems, setLostItems] = useState<LostItemData[]>([
-    {
-      itemName: 'MacBook Pro',
-      category: 'Electronics',
-      location: 'Frenchay Campus',
-      dateLost: new Date('2024-03-15'),
-      description: 'Silver MacBook Pro 13-inch with Touch Bar. Last seen in the library.',
-      contactInfo: 'john.doe@uwe.ac.uk',
-      status: 'Lost',
-    },
-    {
-      itemName: 'Student ID Card',
-      category: 'Documents',
-      location: 'Glenside Campus',
-      dateLost: new Date('2024-03-18'),
-      description: 'UWE student ID card with name "Jane Smith".',
-      contactInfo: 'jane.smith@uwe.ac.uk',
-      status: 'Lost',
-    },
-    {
-      itemName: 'Black Backpack',
-      category: 'Accessories',
-      location: 'City Campus',
-      dateLost: new Date('2024-03-20'),
-      description: 'Nike black backpack with laptop compartment. Contains textbooks and stationery.',
-      contactInfo: 'mike.wilson@uwe.ac.uk',
-      status: 'Lost',
-    },
-  ]);
-
-  const handleOpenForm = () => {
-    setIsFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-  };
-
-  const handleSubmit = (data: LostItemData) => {
-    // TODO: Add API call to save the lost item
-    setLostItems((prev) => [...prev, data]);
-  };
-
-  const filteredItems = lostItems.filter((item) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      item.itemName.toLowerCase().includes(searchLower) ||
-      item.category.toLowerCase().includes(searchLower) ||
-      item.location.toLowerCase().includes(searchLower) ||
-      item.description.toLowerCase().includes(searchLower)
-    );
+  const [newItem, setNewItem] = useState({
+    itemName: '',
+    category: '',
+    location: '',
+    dateLostFound: new Date(),
+    description: '',
+    contactInfo: '',
+    status: 'Lost',
+    type: 'Lost' as const,
+    userId: 'current-user-id', // TODO: Replace with actual user ID
   });
+
+  const fetchLostItems = async () => {
+    try {
+      setLoading(true);
+      const items = await getLostItems();
+      setLostItems(items);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch lost items. Please try again later.');
+      console.error('Error fetching lost items:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLostItems();
+  }, []);
+
+  const handleOpenForm = () => setOpenForm(true);
+  const handleCloseForm = () => setOpenForm(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await addItem(newItem);
+      await fetchLostItems(); // Refresh the list after adding a new item
+      handleCloseForm();
+      setNewItem({
+        itemName: '',
+        category: '',
+        location: '',
+        dateLostFound: new Date(),
+        description: '',
+        contactInfo: '',
+        status: 'Lost',
+        type: 'Lost',
+        userId: 'current-user-id',
+      });
+    } catch (err) {
+      setError('Failed to add item. Please try again.');
+      console.error('Error adding item:', err);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (!searchQuery.trim()) {
+        await fetchLostItems();
+      } else {
+        const results = await searchLostItems(searchQuery);
+        setLostItems(results);
+      }
+    } catch (err) {
+      console.error('Error searching lost items:', err);
+      setError('Failed to search items. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -86,57 +121,152 @@ const LostItems: React.FC = () => {
         </Button>
       </Box>
 
-      <Box sx={{ mb: 4 }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search by item name, category, location, or description..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
+      {error && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Box component="form" onSubmit={handleSearch} sx={{ mb: 4 }}>
+        <Grid container spacing={2}>
+          <Grid item xs>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search lost items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SearchIcon />}
+            >
+              Search
+            </Button>
+          </Grid>
+        </Grid>
       </Box>
 
       <Grid container spacing={3}>
-        {filteredItems.map((item, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {item.itemName}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Category: {item.category}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Location: {item.location}
-                </Typography>
-                <Typography color="textSecondary" gutterBottom>
-                  Date Lost: {item.dateLost.toLocaleDateString()}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {item.description}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                  Contact: {item.contactInfo}
-                </Typography>
-              </CardContent>
-            </Card>
+        {lostItems.length === 0 ? (
+          <Grid item xs={12}>
+            <Typography align="center" color="textSecondary">
+              No lost items found
+            </Typography>
           </Grid>
-        ))}
+        ) : (
+          lostItems.map((item) => (
+            <Grid item xs={12} sm={6} md={4} key={item.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    {item.itemName}
+                  </Typography>
+                  <Chip
+                    label={item.category}
+                    color="primary"
+                    size="small"
+                    sx={{ mb: 1 }}
+                  />
+                  <Typography color="textSecondary" gutterBottom>
+                    Location: {item.location}
+                  </Typography>
+                  <Typography color="textSecondary" gutterBottom>
+                    Date Lost: {item.dateLostFound?.toLocaleDateString()}
+                  </Typography>
+                  <Typography variant="body2" paragraph>
+                    {item.description}
+                  </Typography>
+                  <Typography variant="body2" color="primary">
+                    Contact: {item.contactInfo}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        )}
       </Grid>
 
-      <LostItemForm
-        open={isFormOpen}
-        onClose={handleCloseForm}
-        onSubmit={handleSubmit}
-      />
+      <Dialog open={openForm} onClose={handleCloseForm} maxWidth="sm" fullWidth>
+        <DialogTitle>Report Lost Item</DialogTitle>
+        <form onSubmit={handleSubmit}>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Item Name"
+                  value={newItem.itemName}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, itemName: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Category"
+                  value={newItem.category}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, category: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  multiline
+                  rows={3}
+                  value={newItem.description}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, description: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Location Lost"
+                  value={newItem.location}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, location: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Contact Information"
+                  value={newItem.contactInfo}
+                  onChange={(e) =>
+                    setNewItem({ ...newItem, contactInfo: e.target.value })
+                  }
+                  required
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseForm}>Cancel</Button>
+            <Button type="submit" variant="contained" color="primary">
+              Submit
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </Container>
   );
 };
