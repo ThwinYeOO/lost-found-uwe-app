@@ -7,12 +7,16 @@ import {
   Card,
   CardContent,
   Grid,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
 import FoundItemForm, { FoundItemData } from '../components/FoundItemForm';
 
 const FoundItems: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [foundItems, setFoundItems] = useState<FoundItemData[]>([
     {
       itemName: 'iPhone 13',
@@ -83,6 +87,16 @@ const FoundItems: React.FC = () => {
     setFoundItems((prev) => [...prev, data]);
   };
 
+  const filteredItems = foundItems.filter((item) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      item.itemName.toLowerCase().includes(searchLower) ||
+      item.category.toLowerCase().includes(searchLower) ||
+      item.location.toLowerCase().includes(searchLower) ||
+      item.description.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
@@ -99,8 +113,25 @@ const FoundItems: React.FC = () => {
         </Button>
       </Box>
 
+      <Box sx={{ mb: 4 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search by item name, category, location, or description..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
       <Grid container spacing={3}>
-        {foundItems.map((item, index) => (
+        {filteredItems.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card>
               <CardContent>
