@@ -117,29 +117,287 @@ const Home: React.FC = () => {
           color: 'white',
           py: 8,
           mb: 6,
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            zIndex: 1,
+          },
         }}
       >
-        <Container maxWidth="lg">
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <img
-              src="/uwe-logo.png"
-              alt="UWE Bristol Logo"
-              style={{
-                height: '80px',
-                width: 'auto',
-                marginRight: '20px',
-                objectFit: 'contain'
-              }}
-            />
-            <Box>
-              <Typography variant="h2" component="h1" gutterBottom>
-                UWE Lost & Found Portal
-              </Typography>
-              <Typography variant="h5" component="h2" gutterBottom>
-                Find your lost items or help others find theirs
-              </Typography>
-            </Box>
-          </Box>
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
+          {/* Floating Decorative Elements */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '10%',
+              right: '5%',
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              animation: 'float 6s ease-in-out infinite',
+              '@keyframes float': {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '20%',
+              right: '15%',
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              animation: 'float 4s ease-in-out infinite 1s',
+              '@keyframes float': {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-15px)' },
+              },
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '60%',
+              right: '8%',
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              animation: 'float 5s ease-in-out infinite 2s',
+              '@keyframes float': {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+            }}
+          />
+          
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={8}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <img
+                  src="/uwe-logo.png"
+                  alt="UWE Bristol Logo"
+                  style={{
+                    height: '80px',
+                    width: 'auto',
+                    marginRight: '20px',
+                    objectFit: 'contain'
+                  }}
+                />
+                <Box>
+                  <Typography variant="h2" component="h1" gutterBottom>
+                    UWE Lost & Found Portal
+                  </Typography>
+                  <Typography variant="h5" component="h2" gutterBottom>
+                    Find your lost items or help others find theirs
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 3,
+                }}
+              >
+                {/* Statistics Cards */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    width: '100%',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: 2,
+                      p: 2,
+                      textAlign: 'center',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      minWidth: '80px',
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      50+
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
+                      Items Found
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: 2,
+                      p: 2,
+                      textAlign: 'center',
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      minWidth: '80px',
+                    }}
+                  >
+                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
+                      200+
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
+                      Students
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Feature Icons */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 3,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      color: 'white',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        p: 2,
+                        mb: 1,
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                          '100%': { transform: 'scale(1)' },
+                        },
+                      }}
+                    >
+                      <SearchIcon sx={{ fontSize: 30 }} />
+                    </Box>
+                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
+                      Quick Search
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      color: 'white',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        p: 2,
+                        mb: 1,
+                        animation: 'pulse 2s infinite 0.5s',
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                          '100%': { transform: 'scale(1)' },
+                        },
+                      }}
+                    >
+                      <NotificationsIcon sx={{ fontSize: 30 }} />
+                    </Box>
+                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
+                      Instant Alerts
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      color: 'white',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        borderRadius: '50%',
+                        p: 2,
+                        mb: 1,
+                        animation: 'pulse 2s infinite 1s',
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(1)' },
+                          '50%': { transform: 'scale(1.05)' },
+                          '100%': { transform: 'scale(1)' },
+                        },
+                      }}
+                    >
+                      <AddCircleIcon sx={{ fontSize: 30 }} />
+                    </Box>
+                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
+                      Easy Report
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Call to Action Card */}
+                <Box
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: 3,
+                    p: 3,
+                    textAlign: 'center',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    width: '100%',
+                    maxWidth: '280px',
+                  }}
+                >
+                  <Typography variant="h6" sx={{ color: 'white', mb: 1, fontWeight: 'bold' }}>
+                    Join Our Community
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'white', opacity: 0.9, mb: 2 }}>
+                    Help fellow students and find your lost items
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    sx={{
+                      backgroundColor: 'white',
+                      color: 'primary.main',
+                      fontWeight: 'bold',
+                      px: 3,
+                      py: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        transform: 'translateY(-2px)',
+                        transition: 'all 0.3s ease',
+                      },
+                    }}
+                    onClick={() => navigate('/register')}
+                  >
+                    Get Started
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
           
           {/* User Search Bar */}
           <Box ref={searchRef} sx={{ mt: 4, mb: 4, position: 'relative' }}>
