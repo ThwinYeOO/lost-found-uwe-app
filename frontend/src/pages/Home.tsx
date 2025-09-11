@@ -279,6 +279,99 @@ const Home: React.FC = () => {
         </Container>
       </Box>
 
+      {/* UWE Images Gallery Section */}
+      <Container maxWidth="lg" sx={{ mb: 8 }}>
+        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+          Welcome to UWE Bristol
+        </Typography>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  transition: 'transform 0.3s ease-in-out',
+                },
+              }}
+            >
+              <img
+                src="/uwe-scholarship.jpg"
+                alt="UWE Bristol Chancellors Scholarship"
+                style={{
+                  width: '100%',
+                  height: '300px',
+                  objectFit: 'cover',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                  color: 'white',
+                  p: 2,
+                }}
+              >
+                <Typography variant="h6" component="h3">
+                  UWE Bristol Chancellors Scholarship
+                </Typography>
+                <Typography variant="body2">
+                  Supporting excellence in education and student success
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  transition: 'transform 0.3s ease-in-out',
+                },
+              }}
+            >
+              <img
+                src="/uwe-campus.jpg"
+                alt="UWE Bristol Campus"
+                style={{
+                  width: '100%',
+                  height: '300px',
+                  objectFit: 'cover',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                  color: 'white',
+                  p: 2,
+                }}
+              >
+                <Typography variant="h6" component="h3">
+                  UWE Bristol Campus
+                </Typography>
+                <Typography variant="body2">
+                  A vibrant learning community where students thrive
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+
       {/* Features Section */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>
         <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
