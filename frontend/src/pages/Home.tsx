@@ -16,6 +16,10 @@ import {
   Avatar,
   Paper,
   CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -24,6 +28,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import MessageIcon from '@mui/icons-material/Message';
 import ChatIcon from '@mui/icons-material/Chat';
+import CloseIcon from '@mui/icons-material/Close';
+import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import { searchUsers } from '../services/firestore';
 import { User } from '../types';
 
@@ -33,6 +39,8 @@ const Home: React.FC = () => {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [selectedMap, setSelectedMap] = useState<{ src: string; title: string; description: string } | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = async (query: string) => {
@@ -74,6 +82,16 @@ const Home: React.FC = () => {
   const handleChatClick = (user: User, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent triggering the user click
     navigate(`/profile/${user.id}?chat=true`);
+  };
+
+  const handleMapClick = (mapData: { src: string; title: string; description: string }) => {
+    setSelectedMap(mapData);
+    setMapModalOpen(true);
+  };
+
+  const handleCloseMapModal = () => {
+    setMapModalOpen(false);
+    setSelectedMap(null);
   };
 
   // Close search results when clicking outside
@@ -385,11 +403,17 @@ const Home: React.FC = () => {
                 borderRadius: 2,
                 overflow: 'hidden',
                 boxShadow: 3,
+                cursor: 'pointer',
                 '&:hover': {
                   transform: 'scale(1.02)',
                   transition: 'transform 0.3s ease-in-out',
                 },
               }}
+              onClick={() => handleMapClick({
+                src: '/uwe-map-1.jpg',
+                title: 'UWE Bristol Campus Overview',
+                description: 'Navigate around our beautiful campus facilities'
+              })}
             >
               <img
                 src="/uwe-map-1.jpg"
@@ -400,6 +424,18 @@ const Home: React.FC = () => {
                   objectFit: 'cover',
                 }}
               />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  borderRadius: '50%',
+                  p: 1,
+                }}
+              >
+                <ZoomInIcon sx={{ color: 'white', fontSize: 20 }} />
+              </Box>
               <Box
                 sx={{
                   position: 'absolute',
@@ -427,11 +463,17 @@ const Home: React.FC = () => {
                 borderRadius: 2,
                 overflow: 'hidden',
                 boxShadow: 3,
+                cursor: 'pointer',
                 '&:hover': {
                   transform: 'scale(1.02)',
                   transition: 'transform 0.3s ease-in-out',
                 },
               }}
+              onClick={() => handleMapClick({
+                src: '/uwe-campus-map.jpg',
+                title: 'Glenside Campus Map',
+                description: 'Detailed map of the Glenside campus facilities'
+              })}
             >
               <img
                 src="/uwe-campus-map.jpg"
@@ -442,6 +484,18 @@ const Home: React.FC = () => {
                   objectFit: 'cover',
                 }}
               />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  borderRadius: '50%',
+                  p: 1,
+                }}
+              >
+                <ZoomInIcon sx={{ color: 'white', fontSize: 20 }} />
+              </Box>
               <Box
                 sx={{
                   position: 'absolute',
@@ -518,6 +572,51 @@ const Home: React.FC = () => {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Map Modal Dialog */}
+      <Dialog
+        open={mapModalOpen}
+        onClose={handleCloseMapModal}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            margin: 1,
+          },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h5" component="div">
+              {selectedMap?.title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedMap?.description}
+            </Typography>
+          </Box>
+          <IconButton
+            onClick={handleCloseMapModal}
+            sx={{ color: 'grey.500' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {selectedMap && (
+            <img
+              src={selectedMap.src}
+              alt={selectedMap.title}
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };
