@@ -132,272 +132,279 @@ const Home: React.FC = () => {
         }}
       >
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
-          {/* Floating Decorative Elements */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '10%',
-              right: '5%',
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              animation: 'float 6s ease-in-out infinite',
-              '@keyframes float': {
-                '0%, 100%': { transform: 'translateY(0px)' },
-                '50%': { transform: 'translateY(-20px)' },
-              },
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '20%',
-              right: '15%',
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              animation: 'float 4s ease-in-out infinite 1s',
-              '@keyframes float': {
-                '0%, 100%': { transform: 'translateY(0px)' },
-                '50%': { transform: 'translateY(-15px)' },
-              },
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '60%',
-              right: '8%',
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              animation: 'float 5s ease-in-out infinite 2s',
-              '@keyframes float': {
-                '0%, 100%': { transform: 'translateY(0px)' },
-                '50%': { transform: 'translateY(-10px)' },
-              },
-            }}
-          />
-          
-          <Grid container spacing={4} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <img
-                  src="/uwe-logo.png"
-                  alt="UWE Bristol Logo"
-                  style={{
-                    height: '80px',
-                    width: 'auto',
-                    marginRight: '20px',
-                    objectFit: 'contain'
-                  }}
-                />
-                <Box>
-                  <Typography variant="h2" component="h1" gutterBottom>
-                    UWE Lost & Found Portal
-                  </Typography>
-                  <Typography variant="h5" component="h2" gutterBottom>
-                    Find your lost items or help others find theirs
-                  </Typography>
-                </Box>
+          {/* Main Hero Content */}
+          <Box sx={{ textAlign: 'center', mb: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 4 }}>
+              <img
+                src="/uwe-logo.png"
+                alt="UWE Bristol Logo"
+                style={{
+                  height: '100px',
+                  width: 'auto',
+                  marginRight: '30px',
+                  objectFit: 'contain'
+                }}
+              />
+              <Box sx={{ textAlign: 'left' }}>
+                <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                  UWE Lost & Found Portal
+                </Typography>
+                <Typography variant="h5" component="h2" sx={{ opacity: 0.9, fontWeight: 300 }}>
+                  Find your lost items or help others find theirs
+                </Typography>
               </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </Box>
+
+            {/* Statistics Row */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 4,
+                mb: 4,
+                flexWrap: 'wrap',
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  borderRadius: 3,
+                  p: 3,
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  minWidth: '150px',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
+                }}
+              >
+                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', mb: 1 }}>
+                  50+
+                </Typography>
+                <Typography variant="h6" sx={{ color: 'white', opacity: 0.9 }}>
+                  Items Found
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  borderRadius: 3,
+                  p: 3,
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  minWidth: '150px',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
+                }}
+              >
+                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', mb: 1 }}>
+                  200+
+                </Typography>
+                <Typography variant="h6" sx={{ color: 'white', opacity: 0.9 }}>
+                  Students
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  borderRadius: 3,
+                  p: 3,
+                  textAlign: 'center',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  minWidth: '150px',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
+                }}
+              >
+                <Typography variant="h3" sx={{ color: 'white', fontWeight: 'bold', mb: 1 }}>
+                  95%
+                </Typography>
+                <Typography variant="h6" sx={{ color: 'white', opacity: 0.9 }}>
+                  Success Rate
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Feature Icons Row */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 6,
+                mb: 4,
+                flexWrap: 'wrap',
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 3,
+                  color: 'white',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
                 }}
               >
-                {/* Statistics Cards */}
                 <Box
                   sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50%',
+                    p: 3,
+                    mb: 2,
                     display: 'flex',
-                    gap: 2,
-                    width: '100%',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: 2,
-                      p: 2,
-                      textAlign: 'center',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      minWidth: '80px',
-                    }}
-                  >
-                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                      50+
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
-                      Items Found
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      borderRadius: 2,
-                      p: 2,
-                      textAlign: 'center',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      minWidth: '80px',
-                    }}
-                  >
-                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold' }}>
-                      200+
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
-                      Students
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* Feature Icons */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: 3,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexWrap: 'wrap',
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '50%',
-                        p: 2,
-                        mb: 1,
-                        animation: 'pulse 2s infinite',
-                        '@keyframes pulse': {
-                          '0%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                          '100%': { transform: 'scale(1)' },
-                        },
-                      }}
-                    >
-                      <SearchIcon sx={{ fontSize: 30 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
-                      Quick Search
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '50%',
-                        p: 2,
-                        mb: 1,
-                        animation: 'pulse 2s infinite 0.5s',
-                        '@keyframes pulse': {
-                          '0%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                          '100%': { transform: 'scale(1)' },
-                        },
-                      }}
-                    >
-                      <NotificationsIcon sx={{ fontSize: 30 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
-                      Instant Alerts
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '50%',
-                        p: 2,
-                        mb: 1,
-                        animation: 'pulse 2s infinite 1s',
-                        '@keyframes pulse': {
-                          '0%': { transform: 'scale(1)' },
-                          '50%': { transform: 'scale(1.05)' },
-                          '100%': { transform: 'scale(1)' },
-                        },
-                      }}
-                    >
-                      <AddCircleIcon sx={{ fontSize: 30 }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ textAlign: 'center', opacity: 0.9 }}>
-                      Easy Report
-                    </Typography>
-                  </Box>
+                  <SearchIcon sx={{ fontSize: 40 }} />
                 </Box>
-
-                {/* Call to Action Card */}
+                <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Quick Search
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8, mt: 1 }}>
+                  Find items instantly
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  color: 'white',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
+                }}
+              >
                 <Box
                   sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    borderRadius: 3,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50%',
                     p: 3,
-                    textAlign: 'center',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    width: '100%',
-                    maxWidth: '280px',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <Typography variant="h6" sx={{ color: 'white', mb: 1, fontWeight: 'bold' }}>
-                    Join Our Community
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'white', opacity: 0.9, mb: 2 }}>
-                    Help fellow students and find your lost items
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    sx={{
-                      backgroundColor: 'white',
-                      color: 'primary.main',
-                      fontWeight: 'bold',
-                      px: 3,
-                      py: 1,
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        transform: 'translateY(-2px)',
-                        transition: 'all 0.3s ease',
-                      },
-                    }}
-                    onClick={() => navigate('/register')}
-                  >
-                    Get Started
-                  </Button>
+                  <NotificationsIcon sx={{ fontSize: 40 }} />
                 </Box>
+                <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Instant Alerts
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8, mt: 1 }}>
+                  Get notified immediately
+                </Typography>
               </Box>
-            </Grid>
-          </Grid>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  color: 'white',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-5px)',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50%',
+                    p: 3,
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AddCircleIcon sx={{ fontSize: 40 }} />
+                </Box>
+                <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>
+                  Easy Report
+                </Typography>
+                <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8, mt: 1 }}>
+                  Report in seconds
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Call to Action */}
+            <Box
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 4,
+                p: 4,
+                textAlign: 'center',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                maxWidth: '600px',
+                margin: '0 auto',
+              }}
+            >
+              <Typography variant="h4" sx={{ color: 'white', mb: 2, fontWeight: 'bold' }}>
+                Join Our Community Today
+              </Typography>
+              <Typography variant="h6" sx={{ color: 'white', opacity: 0.9, mb: 3 }}>
+                Help fellow students and find your lost items with ease
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    fontWeight: 'bold',
+                    px: 4,
+                    py: 2,
+                    fontSize: '1.1rem',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                      transform: 'translateY(-2px)',
+                      transition: 'all 0.3s ease',
+                    },
+                  }}
+                  onClick={() => navigate('/register')}
+                >
+                  Get Started
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  sx={{
+                    borderColor: 'white',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    px: 4,
+                    py: 2,
+                    fontSize: '1.1rem',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      borderColor: 'white',
+                      transform: 'translateY(-2px)',
+                      transition: 'all 0.3s ease',
+                    },
+                  }}
+                  onClick={() => navigate('/lost')}
+                >
+                  Browse Items
+                </Button>
+              </Box>
+            </Box>
+          </Box>
           
           {/* User Search Bar */}
           <Box ref={searchRef} sx={{ mt: 4, mb: 4, position: 'relative' }}>
