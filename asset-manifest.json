@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/lost-found-uwe-app/static/css/main.08f8d605.css",
-    "main.js": "/lost-found-uwe-app/static/js/main.38225d8b.js",
-    "static/js/453.6937adcd.chunk.js": "/lost-found-uwe-app/static/js/453.6937adcd.chunk.js",
-    "index.html": "/lost-found-uwe-app/index.html",
-    "main.08f8d605.css.map": "/lost-found-uwe-app/static/css/main.08f8d605.css.map",
-    "main.38225d8b.js.map": "/lost-found-uwe-app/static/js/main.38225d8b.js.map",
-    "453.6937adcd.chunk.js.map": "/lost-found-uwe-app/static/js/453.6937adcd.chunk.js.map"
+    "main.css": "/static/css/main.08f8d605.css",
+    "main.js": "/static/js/main.15c18da0.js",
+    "static/js/453.6937adcd.chunk.js": "/static/js/453.6937adcd.chunk.js",
+    "index.html": "/index.html",
+    "main.08f8d605.css.map": "/static/css/main.08f8d605.css.map",
+    "main.15c18da0.js.map": "/static/js/main.15c18da0.js.map",
+    "453.6937adcd.chunk.js.map": "/static/js/453.6937adcd.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.08f8d605.css",
-    "static/js/main.38225d8b.js"
+    "static/js/main.15c18da0.js"
   ]
 }
