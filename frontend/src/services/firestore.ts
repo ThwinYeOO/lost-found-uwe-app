@@ -11,11 +11,12 @@ import {
   doc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { Item, User } from '../types';
+import { Item, User, Message } from '../types';
 
 // Collection references
 const ITEMS_COLLECTION = 'items';
 const USERS_COLLECTION = 'users';
+const MESSAGES_COLLECTION = 'messages';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -157,6 +158,28 @@ export const loginUser = async (identifier: string, password: string) => {
   return user;
 };
 
+export const updateUser = async (userId: string, userData: Partial<Omit<User, 'id'>>) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to update user');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating user:', error);
+    throw error;
+  }
+};
+
 // Helper functions for Lost and Found items
 export const getLostItems = async (): Promise<Item[]> => {
   return getItems('Lost');
@@ -192,4 +215,236 @@ export const getUserItems = async (userId: string, type: 'Lost' | 'Found'): Prom
     console.error(`Error getting user's ${type} items:`, error);
     throw error;
   }
-}; 
+};
+
+export const searchUsers = async (searchQuery: string): Promise<User[]> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/users/search?query=${encodeURIComponent(searchQuery)}`
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to search users');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching users:', error);
+    throw error;
+  }
+};
+
+export const getUserById = async (userId: string): Promise<User> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to fetch user');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    throw error;
+  }
+};
+
+// Message Operations
+export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'read'>): Promise<string> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to send message');
+    }
+
+    const data = await response.json();
+    return data.id;
+  } catch (error) {
+    console.error('Error sending message:', error);
+    throw error;
+  }
+};
+
+export const getMessages = async (userId: string, chatWith?: string): Promise<Message[]> => {
+  try {
+    const url = chatWith 
+      ? `${API_BASE_URL}/messages?userId=${userId}&chatWith=${chatWith}`
+      : `${API_BASE_URL}/messages?userId=${userId}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to fetch messages');
+    }
+
+    const data = await response.json();
+    return data.map((message: any) => ({
+      ...message,
+      timestamp: message.timestamp ? new Date(message.timestamp) : new Date()
+    }));
+  } catch (error) {
+    console.error('Error getting messages:', error);
+    throw error;
+  }
+};
+
+// Profile Photo Upload
+export const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('profilePhoto', file);
+    formData.append('userId', userId);
+
+    const response = await fetch(`${API_BASE_URL}/upload-profile-photo`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to upload profile photo');
+    }
+
+    const data = await response.json();
+    return data.avatarUrl;
+  } catch (error) {
+    console.error('Error uploading profile photo:', error);
+    throw error;
+  }
+};
+
+// Admin Operations
+export const getAdminDashboard = async (): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/dashboard`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to fetch admin dashboard data');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting admin dashboard data:', error);
+    throw error;
+  }
+};
+
+export const deleteUser = async (userId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to delete user');
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+};
+
+export const updateUserRole = async (userId: string, role: 'user' | 'admin'): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/role`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ role }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to update user role');
+    }
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    throw error;
+  }
+};
+
+export const updateUserStatus = async (userId: string, isActive: boolean): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ isActive }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to update user status');
+    }
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    throw error;
+  }
+};
+
+export const deleteItem = async (itemId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/items/${itemId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to delete item');
+    }
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    throw error;
+  }
+};
+
+export const getAllMessages = async (): Promise<Message[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/messages`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to fetch messages');
+    }
+
+    const data = await response.json();
+    return data.map((message: any) => ({
+      ...message,
+      timestamp: message.timestamp ? new Date(message.timestamp) : new Date()
+    }));
+  } catch (error) {
+    console.error('Error getting all messages:', error);
+    throw error;
+  }
+};
+
+export const deleteMessage = async (messageId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/messages/${messageId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to delete message');
+    }
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    throw error;
+  }
+};

@@ -10,9 +10,11 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/firestore';
+import { useAdmin } from '../contexts/AdminContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login: adminLogin } = useAdmin();
   const [formData, setFormData] = useState({
     emailOrName: '',
     password: '',
@@ -32,8 +34,16 @@ const Login: React.FC = () => {
     setError(null);
     try {
       const user = await loginUser(formData.emailOrName, formData.password);
+      console.log('Login - User logged in:', user);
       // Store user info in localStorage/session if needed
       localStorage.setItem('user', JSON.stringify(user));
+      
+      // If user is admin, update admin context
+      if (user.role === 'admin') {
+        console.log('Login - Admin user detected, updating admin context');
+        adminLogin(user);
+      }
+      
       navigate('/'); // Redirect to home or dashboard
     } catch (err: any) {
       setError(err.message || 'Login failed');

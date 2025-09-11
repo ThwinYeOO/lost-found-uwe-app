@@ -19,4 +19,41 @@ export interface User {
   phoneNumber: string;
   uweId: string;
   avatar?: string;
+  role?: 'user' | 'admin';
+  isActive?: boolean;
+  createdAt?: Date;
+  lastLogin?: Date;
+}
+
+export interface Message {
+  id?: string;  // Auto-generated
+  senderId: string;
+  senderName: string;
+  senderEmail: string;
+  recipientId: string;
+  recipientName: string;
+  recipientEmail: string;
+  subject: string;
+  content: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalItems: number;
+  totalLostItems: number;
+  totalFoundItems: number;
+  totalMessages: number;
+  activeUsers: number;
+  recentItems: Item[];
+  recentUsers: User[];
+}
+
+export interface AdminDashboardData {
+  stats: AdminStats;
+  chartData: {
+    itemsByMonth: { month: string; lost: number; found: number }[];
+    usersByMonth: { month: string; count: number }[];
+  };
 } 

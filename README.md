@@ -4,12 +4,22 @@ A web application for University of the West of England (UWE) students to report
 
 ## Features
 
+### User Features
 - Report lost items
 - Report found items
 - Search for lost/found items
-- User authentication
+- User authentication and profiles
 - Image upload for items
-- Real-time updates
+- Real-time messaging between users
+- Chat history and notifications
+
+### Admin Features
+- **Comprehensive Dashboard**: Statistics, charts, and analytics
+- **User Management**: View, edit, delete users; manage roles and status
+- **Item Management**: View, edit, delete all lost/found items
+- **Message Management**: View and manage all user messages
+- **Search & Filter**: Advanced search across all data
+- **Role-based Access Control**: Secure admin authentication
 
 ## Tech Stack
 
@@ -23,8 +33,22 @@ A web application for University of the West of England (UWE) students to report
 
 ```
 lost-found-uwe-app/
-├── client/                 # React frontend
-├── server/                 # Node.js backend
+├── frontend/               # React frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── pages/          # Page components
+│   │   ├── contexts/       # React contexts (Admin)
+│   │   ├── services/       # API services
+│   │   └── types.ts        # TypeScript interfaces
+├── backend/                # Node.js backend
+│   ├── src/
+│   │   ├── controllers/    # Route controllers
+│   │   ├── middleware/     # Express middleware
+│   │   ├── models/         # Data models
+│   │   ├── routes/         # API routes
+│   │   └── services/       # Business logic
+├── ADMIN_SETUP.md          # Admin setup guide
+├── create-admin.js         # Admin user creation script
 └── README.md
 ```
 
@@ -38,9 +62,9 @@ lost-found-uwe-app/
 
 ### Frontend Setup
 
-1. Navigate to the client directory:
+1. Navigate to the frontend directory:
    ```bash
-   cd client
+   cd frontend
    ```
 
 2. Install dependencies:
@@ -48,7 +72,7 @@ lost-found-uwe-app/
    npm install
    ```
 
-3. Create a `.env` file in the client directory and add your Firebase configuration:
+3. Create a `.env` file in the frontend directory and add your Firebase configuration:
    ```
    REACT_APP_FIREBASE_API_KEY=your_api_key
    REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
@@ -65,9 +89,9 @@ lost-found-uwe-app/
 
 ### Backend Setup
 
-1. Navigate to the server directory:
+1. Navigate to the backend directory:
    ```bash
-   cd server
+   cd backend
    ```
 
 2. Install dependencies:
@@ -75,9 +99,9 @@ lost-found-uwe-app/
    npm install
    ```
 
-3. Create a `.env` file in the server directory:
+3. Create a `.env` file in the backend directory:
    ```
-   PORT=5000
+   PORT=5001
    FIREBASE_ADMIN_PROJECT_ID=your_project_id
    FIREBASE_ADMIN_PRIVATE_KEY=your_private_key
    FIREBASE_ADMIN_CLIENT_EMAIL=your_client_email
@@ -87,6 +111,27 @@ lost-found-uwe-app/
    ```bash
    npm start
    ```
+
+## Admin Setup
+
+### Quick Admin Setup
+
+1. Start both frontend and backend servers
+2. Run the admin creation script:
+   ```bash
+   node create-admin.js
+   ```
+3. Login with the created admin credentials
+4. Access the admin dashboard at `/admin`
+
+### Manual Admin Setup
+
+1. Register a regular user account
+2. Access the admin dashboard (if you have admin access)
+3. Promote the user to admin role
+4. Or manually update the user's role in Firestore to `"admin"`
+
+For detailed admin setup instructions, see [ADMIN_SETUP.md](./ADMIN_SETUP.md).
 
 ## Contributing
 
