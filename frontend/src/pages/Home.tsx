@@ -263,12 +263,13 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <Box
         sx={{
-          bgcolor: 'primary.main',
-          color: 'white',
-          py: 8,
-          mb: 6,
           position: 'relative',
           overflow: 'hidden',
+          minHeight: '80vh',
+          display: 'flex',
+          alignItems: 'center',
+          color: 'white',
+          mb: 6,
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -276,8 +277,21 @@ const Home: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            backgroundImage: 'url(/graduate-students-scholarships.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
             zIndex: 1,
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.85) 0%, rgba(13, 71, 161, 0.9) 50%, rgba(1, 87, 155, 0.85) 100%)',
+            zIndex: 2,
           },
         }}
       >
@@ -289,10 +303,33 @@ const Home: React.FC = () => {
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
                 {/* Title */}
                 <Box sx={{ textAlign: { xs: 'center', md: 'left' }, mb: 4 }}>
-                  <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
+                  <Typography 
+                    variant="h2" 
+                    component="h1" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      mb: 2, 
+                      color: 'white',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                      fontSize: { xs: '2.5rem', md: '3.5rem' },
+                      lineHeight: 1.2,
+                    }}
+                  >
                     UWE Lost & Found Portal
                   </Typography>
-                  <Typography variant="h6" component="h2" sx={{ opacity: 0.9, fontWeight: 300, color: 'white' }}>
+                  <Typography 
+                    variant="h5" 
+                    component="h2" 
+                    sx={{ 
+                      opacity: 0.95, 
+                      fontWeight: 300, 
+                      color: 'white',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                      fontSize: { xs: '1.2rem', md: '1.5rem' },
+                      lineHeight: 1.4,
+                    }}
+                  >
                     Find your lost items or help others find theirs
                   </Typography>
                 </Box>
@@ -308,64 +345,124 @@ const Home: React.FC = () => {
                 >
                   <Box
                     sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      borderRadius: 2,
-                      p: 2,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderRadius: 3,
+                      p: 3,
                       textAlign: 'center',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'transform 0.3s ease',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                       '&:hover': {
-                        transform: 'translateY(-3px)',
+                        transform: 'translateY(-5px) scale(1.02)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
                       },
                     }}
                   >
-                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontSize: { xs: '2rem', md: '2.5rem' },
+                      }}
+                    >
                       50+
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'white', 
+                        opacity: 0.95,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Items Found
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      borderRadius: 2,
-                      p: 2,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderRadius: 3,
+                      p: 3,
                       textAlign: 'center',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'transform 0.3s ease',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                       '&:hover': {
-                        transform: 'translateY(-3px)',
+                        transform: 'translateY(-5px) scale(1.02)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
                       },
                     }}
                   >
-                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontSize: { xs: '2rem', md: '2.5rem' },
+                      }}
+                    >
                       200+
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'white', 
+                        opacity: 0.95,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Students
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      borderRadius: 2,
-                      p: 2,
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      borderRadius: 3,
+                      p: 3,
                       textAlign: 'center',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'transform 0.3s ease',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                       '&:hover': {
-                        transform: 'translateY(-3px)',
+                        transform: 'translateY(-5px) scale(1.02)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
                       },
                     }}
                   >
-                    <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontSize: { xs: '2rem', md: '2.5rem' },
+                      }}
+                    >
                       95%
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'white', opacity: 0.9 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: 'white', 
+                        opacity: 0.95,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Success Rate
                     </Typography>
                   </Box>
@@ -374,32 +471,63 @@ const Home: React.FC = () => {
                 {/* Call to Action */}
                 <Box
                   sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: 3,
-                    p: 3,
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                    borderRadius: 4,
+                    p: 4,
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     mb: 3,
+                    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 16px 50px rgba(0, 0, 0, 0.2)',
+                    },
                   }}
                 >
-                  <Typography variant="h5" sx={{ color: 'white', mb: 1, fontWeight: 'bold' }}>
+                  <Typography 
+                    variant="h4" 
+                    sx={{ 
+                      color: 'white', 
+                      mb: 2, 
+                      fontWeight: 'bold',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      textAlign: 'center',
+                    }}
+                  >
                     Join Our Community Today
                   </Typography>
-                  <Typography variant="body1" sx={{ color: 'white', opacity: 0.9, mb: 2 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      color: 'white', 
+                      opacity: 0.95, 
+                      mb: 3,
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      textAlign: 'center',
+                      fontWeight: 300,
+                    }}
+                  >
                     Help fellow students and find your lost items with ease
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
                     <Button
                       variant="contained"
+                      size="large"
                       sx={{
                         backgroundColor: 'white',
                         color: 'primary.main',
                         fontWeight: 'bold',
-                        px: 3,
-                        py: 1.5,
+                        px: 4,
+                        py: 2,
+                        fontSize: '1.1rem',
+                        borderRadius: 3,
+                        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
                         '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                          transform: 'translateY(-2px)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          transform: 'translateY(-3px)',
+                          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
                           transition: 'all 0.3s ease',
                         },
                       }}
@@ -409,16 +537,20 @@ const Home: React.FC = () => {
                     </Button>
                     <Button
                       variant="outlined"
+                      size="large"
                       sx={{
                         borderColor: 'white',
                         color: 'white',
                         fontWeight: 'bold',
-                        px: 3,
-                        py: 1.5,
+                        px: 4,
+                        py: 2,
+                        fontSize: '1.1rem',
+                        borderRadius: 3,
+                        borderWidth: 2,
                         '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
                           borderColor: 'white',
-                          transform: 'translateY(-2px)',
+                          transform: 'translateY(-3px)',
                           transition: 'all 0.3s ease',
                         },
                       }}
@@ -449,29 +581,54 @@ const Home: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       color: 'white',
-                      transition: 'transform 0.3s ease',
+                      transition: 'all 0.3s ease',
+                      p: 2,
+                      borderRadius: 3,
                       '&:hover': {
-                        transform: 'translateY(-5px)',
+                        transform: 'translateY(-8px) scale(1.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       },
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
                         borderRadius: '50%',
-                        p: 2.5,
+                        p: 3,
                         mb: 2,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
-                      <SearchIcon sx={{ fontSize: 35 }} />
+                      <SearchIcon sx={{ fontSize: 40 }} />
                     </Box>
-                    <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      }}
+                    >
                       Quick Search
                     </Typography>
-                    <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        opacity: 0.9,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Find items instantly
                     </Typography>
                   </Box>
@@ -481,29 +638,54 @@ const Home: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       color: 'white',
-                      transition: 'transform 0.3s ease',
+                      transition: 'all 0.3s ease',
+                      p: 2,
+                      borderRadius: 3,
                       '&:hover': {
-                        transform: 'translateY(-5px)',
+                        transform: 'translateY(-8px) scale(1.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       },
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
                         borderRadius: '50%',
-                        p: 2.5,
+                        p: 3,
                         mb: 2,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
-                      <NotificationsIcon sx={{ fontSize: 35 }} />
+                      <NotificationsIcon sx={{ fontSize: 40 }} />
                     </Box>
-                    <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      }}
+                    >
                       Instant Alerts
                     </Typography>
-                    <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        opacity: 0.9,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Get notified immediately
                     </Typography>
                   </Box>
@@ -513,29 +695,54 @@ const Home: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       color: 'white',
-                      transition: 'transform 0.3s ease',
+                      transition: 'all 0.3s ease',
+                      p: 2,
+                      borderRadius: 3,
                       '&:hover': {
-                        transform: 'translateY(-5px)',
+                        transform: 'translateY(-8px) scale(1.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       },
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
                         borderRadius: '50%',
-                        p: 2.5,
+                        p: 3,
                         mb: 2,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
-                      <AddCircleIcon sx={{ fontSize: 35 }} />
+                      <AddCircleIcon sx={{ fontSize: 40 }} />
                     </Box>
-                    <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      }}
+                    >
                       Easy Report
                     </Typography>
-                    <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        opacity: 0.9,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Report in seconds
                     </Typography>
                   </Box>
@@ -545,29 +752,54 @@ const Home: React.FC = () => {
                       flexDirection: 'column',
                       alignItems: 'center',
                       color: 'white',
-                      transition: 'transform 0.3s ease',
+                      transition: 'all 0.3s ease',
+                      p: 2,
+                      borderRadius: 3,
                       '&:hover': {
-                        transform: 'translateY(-5px)',
+                        transform: 'translateY(-8px) scale(1.05)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       },
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.25)',
                         borderRadius: '50%',
-                        p: 2.5,
+                        p: 3,
                         mb: 2,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
-                      <SecurityIcon sx={{ fontSize: 35 }} />
+                      <SecurityIcon sx={{ fontSize: 40 }} />
                     </Box>
-                    <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold', mb: 0.5 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        fontWeight: 'bold', 
+                        mb: 1,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                      }}
+                    >
                       Secure Platform
                     </Typography>
-                    <Typography variant="body2" sx={{ textAlign: 'center', opacity: 0.8 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        textAlign: 'center', 
+                        opacity: 0.9,
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                        fontWeight: 500,
+                      }}
+                    >
                       Safe and reliable
                     </Typography>
                   </Box>
@@ -576,38 +808,118 @@ const Home: React.FC = () => {
                 {/* Additional Info Card */}
                 <Box
                   sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    borderRadius: 3,
-                    p: 3,
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    borderRadius: 4,
+                    p: 4,
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 16px 50px rgba(0, 0, 0, 0.2)',
+                    },
                   }}
                 >
-                  <Typography variant="h6" sx={{ color: 'white', mb: 2, fontWeight: 'bold', textAlign: 'center' }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      color: 'white', 
+                      mb: 3, 
+                      fontWeight: 'bold', 
+                      textAlign: 'center',
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                    }}
+                  >
                     Why Choose UWE Lost & Found?
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
-                      <Box sx={{ width: 8, height: 8, backgroundColor: 'white', borderRadius: '50%', mr: 2 }} />
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Box 
+                        sx={{ 
+                          width: 12, 
+                          height: 12, 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                          borderRadius: '50%', 
+                          mr: 2,
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                        }} 
+                      />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          opacity: 0.95,
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                          fontWeight: 500,
+                        }}
+                      >
                         University-verified platform
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
-                      <Box sx={{ width: 8, height: 8, backgroundColor: 'white', borderRadius: '50%', mr: 2 }} />
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Box 
+                        sx={{ 
+                          width: 12, 
+                          height: 12, 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                          borderRadius: '50%', 
+                          mr: 2,
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                        }} 
+                      />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          opacity: 0.95,
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                          fontWeight: 500,
+                        }}
+                      >
                         Real-time notifications
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
-                      <Box sx={{ width: 8, height: 8, backgroundColor: 'white', borderRadius: '50%', mr: 2 }} />
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Box 
+                        sx={{ 
+                          width: 12, 
+                          height: 12, 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                          borderRadius: '50%', 
+                          mr: 2,
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                        }} 
+                      />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          opacity: 0.95,
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                          fontWeight: 500,
+                        }}
+                      >
                         Easy photo uploads
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', color: 'white' }}>
-                      <Box sx={{ width: 8, height: 8, backgroundColor: 'white', borderRadius: '50%', mr: 2 }} />
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      <Box 
+                        sx={{ 
+                          width: 12, 
+                          height: 12, 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                          borderRadius: '50%', 
+                          mr: 2,
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                        }} 
+                      />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          opacity: 0.95,
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                          fontWeight: 500,
+                        }}
+                      >
                         Community-driven support
                       </Typography>
                     </Box>
