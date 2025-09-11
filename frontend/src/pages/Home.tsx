@@ -85,6 +85,11 @@ const Home: React.FC = () => {
     navigate(`/profile/${user.id}?chat=true`);
   };
 
+  const handleViewProfile = (user: User, event: React.MouseEvent) => {
+    event.stopPropagation();
+    navigate(`/profile/${user.id}`);
+  };
+
   const handleMapClick = (mapData: { src: string; title: string; description: string }) => {
     setSelectedMap(mapData);
     setMapModalOpen(true);
@@ -111,6 +116,150 @@ const Home: React.FC = () => {
 
   return (
     <Box>
+      {/* Search Bar and Action Buttons - Under Navbar */}
+      <Box sx={{ backgroundColor: '#f5f5f5', py: 3 }}>
+        <Container maxWidth="lg">
+          {/* User Search Bar */}
+          <Box ref={searchRef} sx={{ mb: 3, position: 'relative' }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search for users by name, email, or UWE ID..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              sx={{
+                maxWidth: 600,
+                mx: 'auto',
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'white',
+                  borderRadius: 2,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    {isSearching ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <SearchIcon sx={{ color: 'primary.main' }} />
+                    )}
+                  </InputAdornment>
+                ),
+              }}
+            />
+            
+            {/* Search Results Dropdown */}
+            {showResults && searchResults.length > 0 && (
+              <Paper
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '100%',
+                  maxWidth: 600,
+                  maxHeight: 300,
+                  overflow: 'auto',
+                  zIndex: 1000,
+                  mt: 1,
+                  boxShadow: 3,
+                }}
+              >
+                <List>
+                  {searchResults.map((user) => (
+                    <ListItem
+                      key={user.id}
+                      button
+                      onClick={() => handleUserClick(user)}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'primary.light',
+                          color: 'white',
+                        },
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>
+                          {user.avatar ? (
+                            <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <PersonIcon />
+                          )}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={user.name}
+                        secondary={`${user.email} • UWE ID: ${user.uweId}`}
+                      />
+                      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<ChatIcon />}
+                          onClick={(e) => handleChatClick(user, e)}
+                        >
+                          Chat
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={(e) => handleViewProfile(user, e)}
+                        >
+                          View Profile
+                        </Button>
+                      </Box>
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
+            
+            {showResults && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
+              <Paper
+                sx={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '100%',
+                  maxWidth: 600,
+                  zIndex: 1000,
+                  mt: 1,
+                  boxShadow: 3,
+                  p: 2,
+                }}
+              >
+                <Typography variant="body2" color="text.secondary" align="center">
+                  No users found matching "{searchQuery}"
+                </Typography>
+              </Paper>
+            )}
+          </Box>
+          
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={() => navigate('/lost')}
+              sx={{ px: 4, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+            >
+              Lost Something?
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={() => navigate('/found')}
+              sx={{ px: 4, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold' }}
+            >
+              Found Something?
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
       {/* Hero Section */}
       <Box
         sx={{
@@ -138,26 +287,14 @@ const Home: React.FC = () => {
             {/* Left Column - Main Content */}
             <Grid item xs={12} md={6}>
               <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-                {/* Logo and Title */}
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                  <img
-                    src="/uwe-logo.png"
-                    alt="UWE Bristol Logo"
-                    style={{
-                      height: '80px',
-                      width: 'auto',
-                      marginRight: '20px',
-                      objectFit: 'contain'
-                    }}
-                  />
-                  <Box>
-                    <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
-                      UWE Lost & Found Portal
-                    </Typography>
-                    <Typography variant="h6" component="h2" sx={{ opacity: 0.9, fontWeight: 300, color: 'white' }}>
-                      Find your lost items or help others find theirs
-                    </Typography>
-                  </Box>
+                {/* Title */}
+                <Box sx={{ textAlign: { xs: 'center', md: 'left' }, mb: 4 }}>
+                  <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 1, color: 'white' }}>
+                    UWE Lost & Found Portal
+                  </Typography>
+                  <Typography variant="h6" component="h2" sx={{ opacity: 0.9, fontWeight: 300, color: 'white' }}>
+                    Find your lost items or help others find theirs
+                  </Typography>
                 </Box>
 
                 {/* Statistics Grid */}
@@ -479,160 +616,6 @@ const Home: React.FC = () => {
               </Box>
             </Grid>
           </Grid>
-          
-          {/* User Search Bar */}
-          <Box ref={searchRef} sx={{ mt: 4, mb: 4, position: 'relative' }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search for users by name, email, or UWE ID..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              sx={{
-                maxWidth: 600,
-                mx: 'auto',
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'white',
-                  borderRadius: 2,
-                  '& fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                  },
-                  '&:hover fieldset': {
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: 'white',
-                  },
-                },
-                '& .MuiInputBase-input': {
-                  color: 'black',
-                  '&::placeholder': {
-                    color: 'rgba(0, 0, 0, 0.6)',
-                    opacity: 1,
-                  },
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    {isSearching ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <SearchIcon sx={{ color: 'primary.main' }} />
-                    )}
-                  </InputAdornment>
-                ),
-              }}
-            />
-            
-            {/* Search Results Dropdown */}
-            {showResults && searchResults.length > 0 && (
-              <Paper
-                sx={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '100%',
-                  maxWidth: 600,
-                  maxHeight: 300,
-                  overflow: 'auto',
-                  zIndex: 1000,
-                  mt: 1,
-                  boxShadow: 3,
-                }}
-              >
-                <List>
-                  {searchResults.map((user) => (
-                    <ListItem
-                      key={user.id}
-                      button
-                      onClick={() => handleUserClick(user)}
-                      sx={{
-                        '&:hover': {
-                          backgroundColor: 'primary.light',
-                          color: 'white',
-                        },
-                      }}
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          {user.avatar ? (
-                            <img src={user.avatar} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <PersonIcon />
-                          )}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={user.name}
-                        secondary={`${user.email} • UWE ID: ${user.uweId}`}
-                      />
-                      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<ChatIcon />}
-                          onClick={(e) => handleChatClick(user, e)}
-                        >
-                          Chat
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<MessageIcon />}
-                          onClick={(e) => handleMessageClick(user, e)}
-                        >
-                          Email
-                        </Button>
-                      </Box>
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            )}
-            
-            {showResults && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
-              <Paper
-                sx={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '100%',
-                  maxWidth: 600,
-                  zIndex: 1000,
-                  mt: 1,
-                  boxShadow: 3,
-                  p: 2,
-                }}
-              >
-                <Typography variant="body2" color="text.secondary" align="center">
-                  No users found matching "{searchQuery}"
-                </Typography>
-              </Paper>
-            )}
-          </Box>
-          
-          <Box sx={{ mt: 4 }}>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={() => navigate('/lost')}
-              sx={{ mr: 2 }}
-            >
-              Lost Something?
-            </Button>
-            <Button
-              variant="outlined"
-              color="inherit"
-              size="large"
-              onClick={() => navigate('/found')}
-            >
-              Found Something?
-            </Button>
-          </Box>
         </Container>
       </Box>
 
