@@ -372,6 +372,99 @@ const Home: React.FC = () => {
         </Grid>
       </Container>
 
+      {/* UWE Campus Maps Section */}
+      <Container maxWidth="lg" sx={{ mb: 8 }}>
+        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+          Campus Maps & Navigation
+        </Typography>
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  transition: 'transform 0.3s ease-in-out',
+                },
+              }}
+            >
+              <img
+                src="/uwe-map-1.jpg"
+                alt="UWE Bristol Campus Map"
+                style={{
+                  width: '100%',
+                  height: '300px',
+                  objectFit: 'cover',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                  color: 'white',
+                  p: 2,
+                }}
+              >
+                <Typography variant="h6" component="h3">
+                  UWE Bristol Campus Overview
+                </Typography>
+                <Typography variant="body2">
+                  Navigate around our beautiful campus facilities
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderRadius: 2,
+                overflow: 'hidden',
+                boxShadow: 3,
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  transition: 'transform 0.3s ease-in-out',
+                },
+              }}
+            >
+              <img
+                src="/uwe-campus-map.jpg"
+                alt="UWE Glenside Campus Map"
+                style={{
+                  width: '100%',
+                  height: '300px',
+                  objectFit: 'cover',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+                  color: 'white',
+                  p: 2,
+                }}
+              >
+                <Typography variant="h6" component="h3">
+                  Glenside Campus Map
+                </Typography>
+                <Typography variant="body2">
+                  Detailed map of the Glenside campus facilities
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Container>
+
       {/* Features Section */}
       <Container maxWidth="lg" sx={{ mb: 8 }}>
         <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
