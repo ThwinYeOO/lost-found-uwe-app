@@ -12,6 +12,8 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AboutUs from './pages/AboutUs';
+import FAQ from './pages/FAQ';
+import Team from './pages/Team';
 import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import ContactUs from './pages/ContactUs';
@@ -78,6 +80,8 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/about" element={<AboutUs />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/team" element={<Team />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/profile/:userId" element={<UserProfile />} />
                   <Route path="/contact" element={<ContactUs />} />

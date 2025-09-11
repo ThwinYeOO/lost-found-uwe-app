@@ -118,6 +118,20 @@ const Navbar: React.FC = () => {
             <Button
               color="inherit"
               component={RouterLink}
+              to="/faq"
+            >
+              FAQ
+            </Button>
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/team"
+            >
+              Team
+            </Button>
+            <Button
+              color="inherit"
+              component={RouterLink}
               to="/contact"
             >
               Contact Us
