@@ -102,12 +102,26 @@ const Home: React.FC = () => {
         }}
       >
         <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" gutterBottom>
-            UWE Lost & Found Portal
-          </Typography>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Find your lost items or help others find theirs
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <img
+              src="/uwe-logo.png"
+              alt="UWE Bristol Logo"
+              style={{
+                height: '80px',
+                width: 'auto',
+                marginRight: '20px',
+                objectFit: 'contain'
+              }}
+            />
+            <Box>
+              <Typography variant="h2" component="h1" gutterBottom>
+                UWE Lost & Found Portal
+              </Typography>
+              <Typography variant="h5" component="h2" gutterBottom>
+                Find your lost items or help others find theirs
+              </Typography>
+            </Box>
+          </Box>
           
           {/* User Search Bar */}
           <Box ref={searchRef} sx={{ mt: 4, mb: 4, position: 'relative' }}>

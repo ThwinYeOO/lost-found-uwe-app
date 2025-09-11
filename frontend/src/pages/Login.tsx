@@ -53,9 +53,21 @@ const Login: React.FC = () => {
   return (
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Login
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <img
+            src="/uwe-logo.png"
+            alt="UWE Bristol Logo"
+            style={{
+              height: '60px',
+              width: 'auto',
+              marginBottom: '16px',
+              objectFit: 'contain'
+            }}
+          />
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            Login
+          </Typography>
+        </Box>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <TextField
             margin="normal"

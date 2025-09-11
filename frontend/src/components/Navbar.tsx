@@ -70,18 +70,29 @@ const Navbar: React.FC = () => {
     <AppBar position="static">
       <Container maxWidth="lg">
         <Toolbar>
-          <Typography
-            variant="h6"
-            component={RouterLink}
-            to="/"
-            sx={{
-              flexGrow: 1,
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            UWE Lost & Found
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <img
+              src="/uwe-logo.png"
+              alt="UWE Bristol Logo"
+              style={{
+                height: '40px',
+                width: 'auto',
+                marginRight: '12px',
+                objectFit: 'contain'
+              }}
+            />
+            <Typography
+              variant="h6"
+              component={RouterLink}
+              to="/"
+              sx={{
+                textDecoration: 'none',
+                color: 'inherit',
+              }}
+            >
+              UWE Lost & Found
+            </Typography>
+          </Box>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Button
               color="inherit"

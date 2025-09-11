@@ -65,6 +65,16 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               alignItems: 'center',
             }}
           >
+            <img
+              src="/uwe-logo.png"
+              alt="UWE Bristol Logo"
+              style={{
+                height: '60px',
+                width: 'auto',
+                marginBottom: '16px',
+                objectFit: 'contain'
+              }}
+            />
             <AdminIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
             <Typography component="h1" variant="h4" gutterBottom>
               Admin Login

@@ -60,9 +60,21 @@ const Register: React.FC = () => {
   return (
     <Container maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Register
-        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <img
+            src="/uwe-logo.png"
+            alt="UWE Bristol Logo"
+            style={{
+              height: '60px',
+              width: 'auto',
+              marginBottom: '16px',
+              objectFit: 'contain'
+            }}
+          />
+          <Typography variant="h4" component="h1" gutterBottom align="center">
+            Register
+          </Typography>
+        </Box>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
