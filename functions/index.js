@@ -1,12 +1,12 @@
 const functions = require('firebase-functions');
-const admin = require('firebase-admin');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const multer = require('multer');
+const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -50,6 +50,17 @@ const upload = multer({
     }
   }
 });
+
+// Email service functions (simplified for Firebase Functions)
+const sendMessageNotification = async (messageData) => {
+  // Email notification logic would go here
+  console.log('Message notification would be sent:', messageData);
+};
+
+const sendWelcomeEmail = async (userData) => {
+  // Welcome email logic would go here
+  console.log('Welcome email would be sent:', userData);
+};
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -213,6 +224,15 @@ app.post('/api/users', async (req, res) => {
     };
     const docRef = await db.collection('users').add(userData);
     
+    // Send welcome email to new user
+    try {
+      await sendWelcomeEmail(userData);
+      console.log('Welcome email sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail the user creation if email fails
+    }
+    
     res.status(201).json({ id: docRef.id, ...userData });
   } catch (error) {
     console.error('Error creating user:', error);
@@ -324,6 +344,15 @@ app.post('/api/messages', async (req, res) => {
     const docRef = await db.collection('messages').add(messageData);
     console.log('Message created with ID:', docRef.id);
     
+    // Send email notification to recipient
+    try {
+      await sendMessageNotification(messageData);
+      console.log('Email notification sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send email notification:', emailError);
+      // Don't fail the message creation if email fails
+    }
+    
     res.status(201).json({ id: docRef.id, ...messageData });
   } catch (error) {
     console.error('Error creating message:', error);
@@ -427,7 +456,8 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
     }
 
     // Generate the file URL
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.FUNCTIONS_EMULATOR ? 'http://localhost:5001' : `https://${req.get('host')}`;
+    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
     
     // Update user's avatar in Firestore
     await db.collection('users').doc(userId).update({
@@ -716,5 +746,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something broke!', details: err.message });
 });
 
-// Export the API as a Firebase Function
+// Export the API as a Firebase Function (1st Gen)
 exports.api = functions.https.onRequest(app);

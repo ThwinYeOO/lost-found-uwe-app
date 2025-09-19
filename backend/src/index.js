@@ -74,6 +74,9 @@ const upload = multer({
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Serve static React files
+app.use(express.static(path.join(__dirname, '../../frontend/build')));
+
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
@@ -465,7 +468,8 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
     }
 
     // Generate the file URL
-    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.FUNCTIONS_EMULATOR ? 'http://localhost:5001' : `${req.protocol}://${req.get('host')}`;
+    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
     
     // Update user's avatar in Firestore
     await db.collection('users').doc(userId).update({
@@ -754,8 +758,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something broke!', details: err.message });
 });
 
+// Catch-all: serve React's index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
+});
+
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Test the server at http://localhost:${PORT}/api/test`);
 }); 

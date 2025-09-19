@@ -12,13 +12,14 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Item, User, Message } from '../types';
+import { API_CONFIG } from '../config/api';
 
 // Collection references
 const ITEMS_COLLECTION = 'items';
 const USERS_COLLECTION = 'users';
 const MESSAGES_COLLECTION = 'messages';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = API_CONFIG.BASE_URL + '/api';
 
 // Items Operations
 export const addItem = async (item: Omit<Item, 'id'>) => {
@@ -155,7 +156,7 @@ export const loginUser = async (identifier: string, password: string) => {
     // Check if response is HTML (404 error page) instead of JSON
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Backend not available. Please upgrade to Blaze plan and deploy functions.');
+      throw new Error('Backend not available. Please check if your backend server is running.');
     }
     
     const users = await response.json();
@@ -168,7 +169,7 @@ export const loginUser = async (identifier: string, password: string) => {
     if (error instanceof Error && error.message.includes('Backend not available')) {
       throw error;
     }
-    throw new Error('Backend not available. Please upgrade to Blaze plan and deploy functions.');
+    throw new Error('Backend not available. Please check if your backend server is running.');
   }
 };
 
