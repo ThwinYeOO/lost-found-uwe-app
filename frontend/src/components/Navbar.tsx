@@ -10,9 +10,34 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Badge,
+  Tooltip,
+  Fade,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { AccountCircle, Message as MessageIcon, AdminPanelSettings as AdminIcon } from '@mui/icons-material';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { 
+  AccountCircle, 
+  Message as MessageIcon, 
+  AdminPanelSettings as AdminIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Home as HomeIcon,
+  Search as SearchIcon,
+  Help as HelpIcon,
+  Group as GroupIcon,
+  ContactMail as ContactIcon,
+  Login as LoginIcon,
+  Logout as LogoutIcon,
+  Person as PersonIcon,
+} from '@mui/icons-material';
 import ChatHistory from './ChatHistory';
 import { User } from '../types';
 import { useAdmin } from '../contexts/AdminContext';
@@ -20,7 +45,11 @@ import { useAdmin } from '../contexts/AdminContext';
 const Navbar: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [chatHistoryOpen, setChatHistoryOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { isAdmin, adminUser, logout: adminLogout, login: adminLogin } = useAdmin();
   
   // Check authentication state based on localStorage
@@ -66,154 +95,396 @@ const Navbar: React.FC = () => {
     navigate('/');
   };
 
+  const handleMobileDrawerToggle = () => {
+    setMobileDrawerOpen(!mobileDrawerOpen);
+  };
+
+  const handleMobileDrawerClose = () => {
+    setMobileDrawerOpen(false);
+  };
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const navigationItems = [
+    { label: 'Lost Items', path: '/lost', icon: <SearchIcon /> },
+    { label: 'Found Items', path: '/found', icon: <SearchIcon /> },
+    { label: 'About Us', path: '/about', icon: <HomeIcon /> },
+    { label: 'FAQ', path: '/faq', icon: <HelpIcon /> },
+    { label: 'Team', path: '/team', icon: <GroupIcon /> },
+    { label: 'Contact Us', path: '/contact', icon: <ContactIcon /> },
+  ];
+
   return (
-    <AppBar position="static">
-      <Container maxWidth="lg">
-        <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <img
-              src="/uwe-logo.png"
-              alt="UWE Bristol Logo"
-              style={{
-                height: '40px',
-                width: 'auto',
-                marginRight: '12px',
-                objectFit: 'contain'
-              }}
-            />
-            <Typography
-              variant="h6"
-              component={RouterLink}
-              to="/"
-              sx={{
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              UWE Lost & Found
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/lost"
-            >
-              Lost Items
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/found"
-            >
-              Found Items
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/about"
-            >
-              About Us
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/faq"
-            >
-              FAQ
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/team"
-            >
-              Team
-            </Button>
-            <Button
-              color="inherit"
-              component={RouterLink}
-              to="/contact"
-            >
-              Contact Us
-            </Button>
-            {isAdmin && (
-              <Button
-                color="inherit"
+    <>
+      <AppBar 
+        position="sticky" 
+        elevation={0}
+        sx={{
+          background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <Container maxWidth="xl">
+          <Toolbar sx={{ minHeight: '70px', py: 1 }}>
+            {/* Logo and Brand */}
+            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+              <Box
+                component={RouterLink}
+                to="/"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'transform 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <img
+                  src="/uwe-logo.png"
+                  alt="UWE Bristol Logo"
+                  style={{
+                    height: '45px',
+                    width: 'auto',
+                    marginRight: '16px',
+                    objectFit: 'contain',
+                  }}
+                />
+                <Typography
+                  variant="h5"
+                  component="span"
+                  sx={{
+                    fontWeight: 700,
+                    background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  UWE Lost & Found
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Desktop Navigation */}
+            {!isMobile && (
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mr: 2 }}>
+                {navigationItems.map((item) => (
+                  <Tooltip key={item.path} title={item.label} arrow>
+                    <Button
+                      component={RouterLink}
+                      to={item.path}
+                      startIcon={item.icon}
+                      sx={{
+                        color: 'white',
+                        fontWeight: isActiveRoute(item.path) ? 600 : 400,
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontSize: '0.95rem',
+                        background: isActiveRoute(item.path) 
+                          ? 'rgba(255, 255, 255, 0.15)' 
+                          : 'transparent',
+                        backdropFilter: isActiveRoute(item.path) ? 'blur(10px)' : 'none',
+                        border: isActiveRoute(item.path) 
+                          ? '1px solid rgba(255, 255, 255, 0.2)' 
+                          : '1px solid transparent',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                        },
+                      }}
+                    >
+                      {item.label}
+                    </Button>
+                  </Tooltip>
+                ))}
+              </Box>
+            )}
+
+            {/* Admin Button */}
+            {isAdmin && !isMobile && (
+              <Chip
+                icon={<AdminIcon />}
+                label="Admin"
                 component={RouterLink}
                 to="/admin"
-                startIcon={<AdminIcon />}
-              >
-                Admin
-              </Button>
+                clickable
+                sx={{
+                  mr: 2,
+                  background: 'linear-gradient(45deg, #ff6b6b 30%, #ee5a24 90%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #ff5252 30%, #e74c3c 90%)',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              />
             )}
-            {isLoggedIn ? (
-              <>
-                <IconButton
-                  size="large"
-                  aria-label="chat history"
-                  onClick={() => setChatHistoryOpen(true)}
-                  color="inherit"
-                  sx={{ mr: 1 }}
-                >
-                  <MessageIcon />
-                </IconButton>
-                <IconButton
-                  size="large"
-                  aria-label="account of current user"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleMenu}
-                  color="inherit"
-                >
-                  <AccountCircle />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorEl}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
-                >
-                  <MenuItem
-                    component={RouterLink}
-                    to="/profile"
-                    onClick={handleClose}
-                  >
-                    Profile
-                  </MenuItem>
-                  {isAdmin && (
-                    <MenuItem
-                      component={RouterLink}
-                      to="/admin"
-                      onClick={handleClose}
+
+            {/* User Actions */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {isLoggedIn ? (
+                <>
+                  <Tooltip title="Messages" arrow>
+                    <IconButton
+                      onClick={() => setChatHistoryOpen(true)}
+                      sx={{
+                        color: 'white',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        '&:hover': {
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          transform: 'scale(1.1)',
+                        },
+                      }}
                     >
-                      <AdminIcon sx={{ mr: 1 }} />
-                      Admin Dashboard
-                    </MenuItem>
-                  )}
-                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                </Menu>
-              </>
-            ) : (
-              <Button
-                color="inherit"
+                      <MessageIcon />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <Tooltip title="Account" arrow>
+                    <IconButton
+                      onClick={handleMenu}
+                      sx={{
+                        color: 'white',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        '&:hover': {
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          transform: 'scale(1.1)',
+                        },
+                      }}
+                    >
+                      <AccountCircle />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              ) : (
+                <Button
+                  component={RouterLink}
+                  to="/login"
+                  startIcon={<LoginIcon />}
+                  sx={{
+                    color: 'white',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    },
+                  }}
+                >
+                  Login
+                </Button>
+              )}
+
+              {/* Mobile Menu Button */}
+              {isMobile && (
+                <IconButton
+                  onClick={handleMobileDrawerToggle}
+                  sx={{
+                    color: 'white',
+                    ml: 1,
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.2)',
+                    },
+                  }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
+            </Box>
+          </Toolbar>
+        </Container>
+
+        {/* User Menu */}
+        <Menu
+          id="menu-appbar"
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          TransitionComponent={Fade}
+          PaperProps={{
+            sx: {
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: 2,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+              minWidth: 200,
+            },
+          }}
+        >
+          <MenuItem
+            component={RouterLink}
+            to="/profile"
+            onClick={handleClose}
+            sx={{
+              py: 1.5,
+              '&:hover': {
+                background: 'rgba(30, 60, 114, 0.1)',
+              },
+            }}
+          >
+            <ListItemIcon>
+              <PersonIcon color="primary" />
+            </ListItemIcon>
+            <ListItemText primary="Profile" />
+          </MenuItem>
+          {isAdmin && (
+            <MenuItem
+              component={RouterLink}
+              to="/admin"
+              onClick={handleClose}
+              sx={{
+                py: 1.5,
+                '&:hover': {
+                  background: 'rgba(30, 60, 114, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon>
+                <AdminIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText primary="Admin Dashboard" />
+            </MenuItem>
+          )}
+          <Divider />
+          <MenuItem 
+            onClick={handleLogout}
+            sx={{
+              py: 1.5,
+              color: 'error.main',
+              '&:hover': {
+                background: 'rgba(244, 67, 54, 0.1)',
+              },
+            }}
+          >
+            <ListItemIcon>
+              <LogoutIcon color="error" />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </MenuItem>
+        </Menu>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileDrawerOpen}
+        onClose={handleMobileDrawerClose}
+        PaperProps={{
+          sx: {
+            background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+            color: 'white',
+            width: 280,
+          },
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Menu
+          </Typography>
+          <IconButton onClick={handleMobileDrawerClose} sx={{ color: 'white' }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)' }} />
+        <List>
+          {navigationItems.map((item) => (
+            <ListItem
+              key={item.path}
+              component={RouterLink}
+              to={item.path}
+              onClick={handleMobileDrawerClose}
+              sx={{
+                color: 'white',
+                py: 1.5,
+                px: 2,
+                background: isActiveRoute(item.path) 
+                  ? 'rgba(255, 255, 255, 0.15)' 
+                  : 'transparent',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontWeight: isActiveRoute(item.path) ? 600 : 400,
+                }}
+              />
+            </ListItem>
+          ))}
+          {isAdmin && (
+            <>
+              <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.2)', my: 1 }} />
+              <ListItem
                 component={RouterLink}
-                to="/login"
+                to="/admin"
+                onClick={handleMobileDrawerClose}
+                sx={{
+                  color: 'white',
+                  py: 1.5,
+                  px: 2,
+                  background: isActiveRoute('/admin') 
+                    ? 'rgba(255, 255, 255, 0.15)' 
+                    : 'transparent',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.1)',
+                  },
+                }}
               >
-                Login
-              </Button>
-            )}
-          </Box>
-        </Toolbar>
-      </Container>
+                <ListItemIcon sx={{ color: 'white', minWidth: 40 }}>
+                  <AdminIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Admin Dashboard"
+                  primaryTypographyProps={{
+                    fontWeight: isActiveRoute('/admin') ? 600 : 400,
+                  }}
+                />
+              </ListItem>
+            </>
+          )}
+        </List>
+      </Drawer>
       
       {/* Chat History Dialog */}
       {currentUser && (
@@ -223,7 +494,7 @@ const Navbar: React.FC = () => {
           currentUser={currentUser}
         />
       )}
-    </AppBar>
+    </>
   );
 };
 

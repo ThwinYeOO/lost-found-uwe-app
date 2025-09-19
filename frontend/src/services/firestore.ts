@@ -18,7 +18,7 @@ const ITEMS_COLLECTION = 'items';
 const USERS_COLLECTION = 'users';
 const MESSAGES_COLLECTION = 'messages';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = '/api';
 
 // Items Operations
 export const addItem = async (item: Omit<Item, 'id'>) => {
@@ -148,14 +148,28 @@ export const registerUser = async (userData: Omit<User, 'id'> & { password: stri
 };
 
 export const loginUser = async (identifier: string, password: string) => {
-  // identifier can be email or name
-  const response = await fetch(`${API_BASE_URL}/users`);
-  const users = await response.json();
-  const user = users.find((u: any) => (u.email === identifier || u.name === identifier) && u.password === password);
-  if (!user) {
-    throw new Error('Invalid credentials');
+  try {
+    // identifier can be email or name
+    const response = await fetch(`${API_BASE_URL}/users`);
+    
+    // Check if response is HTML (404 error page) instead of JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Backend not available. Please upgrade to Blaze plan and deploy functions.');
+    }
+    
+    const users = await response.json();
+    const user = users.find((u: any) => (u.email === identifier || u.name === identifier) && u.password === password);
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
+    return user;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Backend not available')) {
+      throw error;
+    }
+    throw new Error('Backend not available. Please upgrade to Blaze plan and deploy functions.');
   }
-  return user;
 };
 
 export const updateUser = async (userId: string, userData: Partial<Omit<User, 'id'>>) => {
