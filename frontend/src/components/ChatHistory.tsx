@@ -228,10 +228,11 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
         PaperProps={{
           sx: { 
             height: { xs: '90vh', sm: '80vh' },
-            borderRadius: 2,
+            borderRadius: 3,
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
             mx: { xs: 1, sm: 0 },
-            my: { xs: 1, sm: 0 }
+            my: { xs: 1, sm: 0 },
+            overflow: 'hidden',
           }
         }}
       >

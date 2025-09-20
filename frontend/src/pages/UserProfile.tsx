@@ -107,6 +107,7 @@ const UserProfile: React.FC = () => {
         recipientEmail: user.email,
         subject: `Message from ${currentUser.name}`,
         content: messageText.trim(),
+        status: 'sending' as const,
       };
 
       await sendMessage(messageData);

@@ -298,12 +298,22 @@ const LostItems: React.FC = () => {
         sx={{
           background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
           color: 'white',
-          py: { xs: 6, md: 8 },
+          py: { xs: 4, sm: 6, md: 8 },
           position: 'relative',
           overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="1.5"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            animation: 'float 20s ease-in-out infinite',
+          },
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
           <Fade in={true} timeout={1000}>
             <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
               <Typography
@@ -311,9 +321,10 @@ const LostItems: React.FC = () => {
                 component="h1"
                 sx={{
                   fontWeight: 700,
-                  mb: 2,
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
+                  mb: { xs: 1.5, sm: 2 },
+                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3.5rem' },
                   textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  px: { xs: 1, sm: 2, md: 0 },
                 }}
               >
                 Lost & Found Hub
@@ -321,71 +332,88 @@ const LostItems: React.FC = () => {
               <Typography
                 variant="h5"
                 sx={{
-                  mb: 4,
+                  mb: { xs: 3, sm: 4 },
                   opacity: 0.9,
-                  fontSize: { xs: '1.1rem', md: '1.3rem' },
+                  fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.3rem' },
                   maxWidth: '600px',
                   mx: 'auto',
+                  px: { xs: 2, sm: 2, md: 0 },
+                  lineHeight: 1.5,
                 }}
               >
                 Reunite with your lost belongings. Help others find theirs. Together, we make campus life easier.
               </Typography>
               
               {/* Statistics Cards */}
-              <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
-                <Grid item xs={12} sm={4}>
+              <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 3, sm: 4 }, justifyContent: 'center', px: { xs: 1, sm: 0 } }}>
+                <Grid item xs={4} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 2, sm: 3 },
                       textAlign: 'center',
                       bgcolor: 'rgba(255,255,255,0.1)',
                       backdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, sm: 3 },
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        bgcolor: 'rgba(255,255,255,0.15)',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 1 }, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
                       {stats.totalItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body1" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' } }}>
                       Total Items
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={4} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 2, sm: 3 },
                       textAlign: 'center',
                       bgcolor: 'rgba(255,255,255,0.1)',
                       backdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, sm: 3 },
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        bgcolor: 'rgba(255,255,255,0.15)',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 1 }, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
                       {stats.recentItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body1" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' } }}>
                       This Week
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={4} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 2, sm: 3 },
                       textAlign: 'center',
                       bgcolor: 'rgba(255,255,255,0.1)',
                       backdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, sm: 3 },
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        bgcolor: 'rgba(255,255,255,0.15)',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h3" sx={{ fontWeight: 700, mb: { xs: 0.5, sm: 1 }, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}>
                       {stats.resolvedItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body1" sx={{ opacity: 0.9, fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' } }}>
                       Resolved
                     </Typography>
                   </Paper>
@@ -400,18 +428,40 @@ const LostItems: React.FC = () => {
                 sx={{
                   bgcolor: 'white',
                   color: 'primary.main',
-                  px: 4,
-                  py: 1.5,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: 3,
+                  px: { xs: 3, sm: 4 },
+                  py: { xs: 1.5, sm: 1.5 },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontWeight: 700,
+                  borderRadius: { xs: 2, sm: 3 },
                   boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                  minHeight: { xs: 52, sm: 56 },
+                  width: { xs: '100%', sm: 'auto' },
+                  maxWidth: { xs: '300px', sm: 'none' },
+                  mx: { xs: 'auto', sm: 0 },
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(25, 118, 210, 0.1), transparent)',
+                    transition: 'left 0.5s',
+                  },
                   '&:hover': {
                     bgcolor: 'grey.100',
                     transform: 'translateY(-2px)',
                     boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                    '&::before': {
+                      left: '100%',
+                    },
                   },
-                  transition: 'all 0.3s ease',
+                  '&:active': {
+                    transform: 'translateY(-1px)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
               >
                 Report Lost Item
@@ -435,20 +485,21 @@ const LostItems: React.FC = () => {
         />
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 0 } }}>
 
         {/* Search and Filter Section */}
         <Paper
           elevation={2}
           sx={{
-            p: 3,
-            mb: 4,
-            borderRadius: 3,
+            p: { xs: 2, sm: 3 },
+            mb: { xs: 3, sm: 4 },
+            borderRadius: { xs: 2, sm: 3 },
             background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+            border: '1px solid rgba(0, 0, 0, 0.05)',
           }}
         >
           <Box component="form" onSubmit={handleSearch}>
-            <Grid container spacing={2} alignItems="center">
+            <Grid container spacing={{ xs: 2, sm: 2, md: 2 }} alignItems="center">
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -459,7 +510,7 @@ const LostItems: React.FC = () => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchIcon color="action" />
+                        <SearchIcon color="action" sx={{ fontSize: { xs: 20, sm: 24 } }} />
                       </InputAdornment>
                     ),
                     endAdornment: searchQuery && (
@@ -468,51 +519,69 @@ const LostItems: React.FC = () => {
                           size="small"
                           onClick={() => setSearchQuery('')}
                           edge="end"
+                          sx={{ minHeight: 40, minWidth: 40 }}
                         >
-                          <CloseIcon />
+                          <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
                         </IconButton>
                       </InputAdornment>
                     ),
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
+                      borderRadius: { xs: 2, sm: 2 },
                       bgcolor: 'white',
+                      minHeight: { xs: 56, sm: 60 },
+                      '& .MuiInputBase-input': {
+                        fontSize: { xs: '16px', sm: '16px' },
+                        py: { xs: 2.5, sm: 2 },
+                      },
                     },
                   }}
                 />
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={6} md={2}>
                 <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Category</InputLabel>
                   <Select
                     value={filterCategory}
                     label="Category"
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    sx={{ borderRadius: 2 }}
+                    sx={{ 
+                      borderRadius: { xs: 2, sm: 2 },
+                      minHeight: { xs: 56, sm: 60 },
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                      },
+                    }}
                   >
-                    <MenuItem value="all">All Items</MenuItem>
-                    <MenuItem value="Lost">Lost Items</MenuItem>
-                    <MenuItem value="Found">Found Items</MenuItem>
-                    <MenuItem value="Electronics">Electronics</MenuItem>
-                    <MenuItem value="Clothing">Clothing</MenuItem>
-                    <MenuItem value="Accessories">Accessories</MenuItem>
-                    <MenuItem value="Documents">Documents</MenuItem>
+                    <MenuItem value="all" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>All Items</MenuItem>
+                    <MenuItem value="Lost" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Lost Items</MenuItem>
+                    <MenuItem value="Found" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Found Items</MenuItem>
+                    <MenuItem value="Electronics" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Electronics</MenuItem>
+                    <MenuItem value="Clothing" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Clothing</MenuItem>
+                    <MenuItem value="Accessories" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Accessories</MenuItem>
+                    <MenuItem value="Documents" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Documents</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={2}>
+              <Grid item xs={6} md={2}>
                 <FormControl fullWidth>
-                  <InputLabel>Sort By</InputLabel>
+                  <InputLabel sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Sort By</InputLabel>
                   <Select
                     value={sortBy}
                     label="Sort By"
                     onChange={(e) => setSortBy(e.target.value as 'date' | 'name' | 'location')}
-                    sx={{ borderRadius: 2 }}
+                    sx={{ 
+                      borderRadius: { xs: 2, sm: 2 },
+                      minHeight: { xs: 56, sm: 60 },
+                      '& .MuiSelect-select': {
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                      },
+                    }}
                   >
-                    <MenuItem value="date">Date</MenuItem>
-                    <MenuItem value="name">Name</MenuItem>
-                    <MenuItem value="location">Location</MenuItem>
+                    <MenuItem value="date" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Date</MenuItem>
+                    <MenuItem value="name" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Name</MenuItem>
+                    <MenuItem value="location" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>Location</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -521,17 +590,29 @@ const LostItems: React.FC = () => {
                   <Button
                     variant="outlined"
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    startIcon={<SortIcon />}
-                    sx={{ borderRadius: 2, flex: 1 }}
+                    startIcon={<SortIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+                    sx={{ 
+                      borderRadius: { xs: 2, sm: 2 }, 
+                      flex: 1,
+                      minHeight: { xs: 56, sm: 60 },
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                    }}
                   >
                     {sortOrder === 'asc' ? 'Asc' : 'Desc'}
                   </Button>
                   <Tooltip title={viewMode === 'grid' ? 'List View' : 'Grid View'}>
                     <IconButton
                       onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                      sx={{ borderRadius: 2 }}
+                      sx={{ 
+                        borderRadius: { xs: 2, sm: 2 },
+                        minHeight: { xs: 56, sm: 60 },
+                        minWidth: { xs: 56, sm: 60 },
+                      }}
                     >
-                      {viewMode === 'grid' ? <ListViewIcon /> : <GridViewIcon />}
+                      {viewMode === 'grid' ? 
+                        <ListViewIcon sx={{ fontSize: { xs: 20, sm: 24 } }} /> : 
+                        <GridViewIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                      }
                     </IconButton>
                   </Tooltip>
                 </Stack>
@@ -589,7 +670,7 @@ const LostItems: React.FC = () => {
             )}
           </Paper>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
             {filteredItems.map((item, index) => (
               <Grid 
                 item 

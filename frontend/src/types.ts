@@ -37,6 +37,9 @@ export interface Message {
   content: string;
   timestamp: Date;
   read: boolean;
+  status: 'sending' | 'sent' | 'delivered' | 'seen';
+  deliveredAt?: Date;
+  seenAt?: Date;
 }
 
 export interface AdminStats {

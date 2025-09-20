@@ -126,11 +126,12 @@ const Register: React.FC = () => {
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: { xs: 'flex-start', sm: 'center' },
         justifyContent: 'center',
-        py: 4,
+        py: { xs: 1, sm: 4 },
+        px: { xs: 1, sm: 2 },
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'auto',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -147,7 +148,7 @@ const Register: React.FC = () => {
         },
       }}
     >
-      <Container maxWidth="md">
+      <Container maxWidth="md" sx={{ px: { xs: 0, sm: 3, md: 4 }, width: '100%' }}>
         <Fade in timeout={800}>
           <Box>
             {/* Back Button */}
@@ -211,13 +212,15 @@ const Register: React.FC = () => {
                         backdropFilter: 'blur(10px)',
                       }}
                     >
-                      <img
+                      <Box
+                        component="img"
                         src="/uwe-logo.png"
                         alt="UWE Bristol Logo"
-                        style={{
+                        sx={{
                           height: '50px',
                           width: 'auto',
                           objectFit: 'contain',
+                          display: { xs: 'none', md: 'block' },
                         }}
                       />
                     </Box>

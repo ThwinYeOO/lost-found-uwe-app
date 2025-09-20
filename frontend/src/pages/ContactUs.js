@@ -52,7 +52,7 @@ import {
   Subject as SubjectIcon,
   Message as MessageIcon,
   AttachFile as AttachFileIcon,
-  Priority as PriorityIcon,
+  Flag as PriorityIcon,
   ExpandMore as ExpandMoreIcon,
   Facebook as FacebookIcon,
   Twitter as TwitterIcon,

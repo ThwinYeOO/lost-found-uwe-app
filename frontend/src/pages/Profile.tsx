@@ -229,7 +229,10 @@ const Profile: React.FC = () => {
   // Photo upload functions
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !currentUser?.id) return;
+    if (!file || !currentUser?.id) {
+      setUploadError('No file selected or user not logged in');
+      return;
+    }
 
     // Reset the input value to allow selecting the same file again
     event.target.value = '';
@@ -251,6 +254,9 @@ const Profile: React.FC = () => {
     setImageError(false);
 
     try {
+      console.log('Starting photo upload for user:', currentUser.id);
+      console.log('File details:', { name: file.name, size: file.size, type: file.type });
+      
       const avatarUrl = await uploadProfilePhoto(currentUser.id, file);
       
       console.log('Upload successful, avatar URL:', avatarUrl);
@@ -269,7 +275,17 @@ const Profile: React.FC = () => {
       }, 100);
     } catch (error: any) {
       console.error('Error uploading photo:', error);
-      setUploadError(error.message || 'Failed to upload photo');
+      let errorMessage = 'Failed to upload photo';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        errorMessage = 'Network error: Please check your connection and try again';
+      } else if (error.message.includes('Unexpected end of form')) {
+        errorMessage = 'Upload failed: Please try again with a different image';
+      }
+      
+      setUploadError(errorMessage);
     } finally {
       setUploadingPhoto(false);
     }
@@ -289,15 +305,15 @@ const Profile: React.FC = () => {
           py: 4,
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
           <Fade in timeout={800}>
-            <Grid container spacing={4}>
+            <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
             {/* Profile Information */}
             <Grid item xs={12} md={4}>
               <Paper 
                 elevation={8} 
                 sx={{ 
-                  p: 4, 
+                  p: { xs: 2, sm: 3, md: 4 }, 
                   borderRadius: 4,
                   background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
                   backdropFilter: 'blur(10px)',
@@ -360,15 +376,16 @@ const Profile: React.FC = () => {
                               <CircularProgress size={40} sx={{ color: 'white' }} />
                             </Box>
                           )}
-                          <img
+                          <Box
+                            component="img"
                             key={currentUser.avatar}
                             src={currentUser.avatar}
                             alt="Profile"
-                            style={{
-                              width: 160,
-                              height: 160,
+                            sx={{
+                              width: { xs: 100, sm: 120, md: 140, lg: 160 },
+                              height: { xs: 100, sm: 120, md: 140, lg: 160 },
                               borderRadius: '50%',
-                              border: '6px solid #fff',
+                              border: { xs: '4px solid #fff', md: '6px solid #fff' },
                               boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
                               objectFit: 'cover'
                             }}

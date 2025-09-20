@@ -31,6 +31,10 @@ import SecurityIcon from '@mui/icons-material/Security';
 import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
+import SpeedIcon from '@mui/icons-material/Speed';
+import GroupIcon from '@mui/icons-material/Group';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { searchUsers } from '../services/firestore';
 import { User } from '../types';
 
@@ -117,18 +121,34 @@ const Home: React.FC = () => {
   return (
     <Box>
       {/* Search Bar and Action Buttons - Under Navbar */}
-      <Box sx={{ backgroundColor: '#fafafa', py: 6, borderBottom: '1px solid #e0e0e0' }}>
-        <Container maxWidth="lg">
+      <Box sx={{ 
+        backgroundColor: '#fafafa', 
+        py: { xs: 3, sm: 4, md: 6 }, 
+        borderBottom: '1px solid #e0e0e0',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '4px',
+          background: 'linear-gradient(90deg, #667eea, #764ba2, #f093fb)',
+        }
+      }}>
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           {/* Modern Search Section */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{ textAlign: 'center', mb: { xs: 2.5, sm: 3, md: 4 } }}>
             <Typography 
               variant="h4" 
               component="h2" 
               sx={{ 
-                fontWeight: 600, 
+                fontWeight: 700, 
                 color: '#333', 
-                mb: 2,
-                fontSize: { xs: '1.8rem', md: '2.2rem' },
+                mb: { xs: 1.5, sm: 2 },
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.2rem' },
+                lineHeight: 1.2,
+                px: { xs: 1, sm: 2, md: 0 },
               }}
             >
               Find Your Lost Items
@@ -137,10 +157,12 @@ const Home: React.FC = () => {
               variant="body1" 
               sx={{ 
                 color: '#666', 
-                mb: 4,
-                fontSize: '1.1rem',
+                mb: { xs: 2.5, sm: 3, md: 4 },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
                 maxWidth: '600px',
                 mx: 'auto',
+                px: { xs: 2, md: 0 },
+                lineHeight: 1.5,
               }}
             >
               Search for users, lost items, or browse through our community to help others
@@ -148,7 +170,7 @@ const Home: React.FC = () => {
           </Box>
 
           {/* Enhanced Search Bar */}
-          <Box ref={searchRef} sx={{ mb: 4, position: 'relative', maxWidth: 600, mx: 'auto' }}>
+          <Box ref={searchRef} sx={{ mb: { xs: 2.5, sm: 3, md: 4 }, position: 'relative', maxWidth: 600, mx: 'auto', px: { xs: 1, sm: 2, md: 0 } }}>
             <TextField
               fullWidth
               variant="outlined"
@@ -158,34 +180,39 @@ const Home: React.FC = () => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   backgroundColor: 'white',
-                  borderRadius: 3,
+                  borderRadius: { xs: 2, sm: 3 },
                   boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
                   border: '2px solid transparent',
                   transition: 'all 0.3s ease',
+                  minHeight: { xs: 56, sm: 60 },
                   '&:hover': {
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12)',
+                    transform: 'translateY(-1px)',
                   },
                   '&.Mui-focused': {
                     boxShadow: '0 4px 20px rgba(25, 118, 210, 0.15)',
                     borderColor: '#1976d2',
+                    transform: 'translateY(-1px)',
                   },
                 },
                 '& .MuiInputBase-input': {
-                  py: 2,
-                  fontSize: '1rem',
+                  py: { xs: 3, sm: 2.5, md: 2 },
+                  px: { xs: 2, sm: 2.5, md: 3 },
+                  fontSize: { xs: '16px', sm: '16px', md: '1rem' }, // 16px prevents zoom on iOS
                   '&::placeholder': {
                     color: '#999',
                     opacity: 1,
+                    fontSize: { xs: '16px', sm: '16px', md: '1rem' },
                   },
                 },
               }}
               InputProps={{
                 startAdornment: (
-                  <InputAdornment position="start" sx={{ ml: 2 }}>
+                  <InputAdornment position="start" sx={{ ml: { xs: 1.5, sm: 2 } }}>
                     {isSearching ? (
-                      <CircularProgress size={24} sx={{ color: '#1976d2' }} />
+                      <CircularProgress size={20} sx={{ color: '#1976d2' }} />
                     ) : (
-                      <SearchIcon sx={{ color: '#1976d2', fontSize: 24 }} />
+                      <SearchIcon sx={{ color: '#1976d2', fontSize: { xs: 20, sm: 24 } }} />
                     )}
                   </InputAdornment>
                 ),
@@ -337,25 +364,55 @@ const Home: React.FC = () => {
           </Box>
           
           {/* Modern Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: { xs: 1.5, sm: 2, md: 3 }, 
+            justifyContent: 'center', 
+            flexWrap: 'wrap',
+            flexDirection: { xs: 'column', sm: 'row' },
+            px: { xs: 1, sm: 2, md: 0 },
+            maxWidth: { xs: '100%', sm: '500px', md: '600px' },
+            mx: 'auto',
+          }}>
             <Button
               variant="contained"
               size="large"
               onClick={() => navigate('/lost')}
               sx={{
-                px: 6,
-                py: 2,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                borderRadius: 3,
+                px: { xs: 3, sm: 4, md: 6 },
+                py: { xs: 2, sm: 2.5, md: 2 },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                fontWeight: 700,
+                borderRadius: { xs: 2, sm: 3 },
                 backgroundColor: '#f44336',
                 boxShadow: '0 4px 20px rgba(244, 67, 54, 0.4)',
                 textTransform: 'none',
+                minHeight: { xs: 52, sm: 56, md: 'auto' },
+                width: { xs: '100%', sm: 'auto' },
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                  transition: 'left 0.5s',
+                },
                 '&:hover': {
                   backgroundColor: '#d32f2f',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 30px rgba(244, 67, 54, 0.6)',
+                  '&::before': {
+                    left: '100%',
+                  },
                 },
+                '&:active': {
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               Lost Something?
@@ -365,19 +422,40 @@ const Home: React.FC = () => {
               size="large"
               onClick={() => navigate('/found')}
               sx={{
-                px: 6,
-                py: 2,
-                fontSize: '1.1rem',
-                fontWeight: 600,
-                borderRadius: 3,
+                px: { xs: 3, sm: 4, md: 6 },
+                py: { xs: 2, sm: 2.5, md: 2 },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                fontWeight: 700,
+                borderRadius: { xs: 2, sm: 3 },
                 backgroundColor: '#1976d2',
                 boxShadow: '0 4px 20px rgba(25, 118, 210, 0.4)',
                 textTransform: 'none',
+                minHeight: { xs: 52, sm: 56, md: 'auto' },
+                width: { xs: '100%', sm: 'auto' },
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                  transition: 'left 0.5s',
+                },
                 '&:hover': {
                   backgroundColor: '#1565c0',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 30px rgba(25, 118, 210, 0.6)',
+                  '&::before': {
+                    left: '100%',
+                  },
                 },
+                '&:active': {
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               Found Something?
@@ -389,8 +467,8 @@ const Home: React.FC = () => {
       {/* Hero Section */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          py: { xs: 6, md: 12 },
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+          py: { xs: 4, sm: 6, md: 12 },
           position: 'relative',
           overflow: 'hidden',
           '&::before': {
@@ -404,25 +482,48 @@ const Home: React.FC = () => {
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            opacity: 0.1,
+            opacity: 0.15,
             zIndex: 1,
           },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `
+              radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%)
+            `,
+            zIndex: 2,
+            animation: 'float 20s ease-in-out infinite',
+          },
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+            '50%': { transform: 'translateY(-20px) rotate(180deg)' },
+          },
         }}
+        className="hero-section"
       >
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
           {/* Modern Hero Layout */}
-          <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 8 } }}>
             {/* Main Title */}
             <Typography 
               variant="h1" 
               component="h1" 
               sx={{ 
-                fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' },
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem', lg: '3.5rem', xl: '4rem' },
                 fontWeight: 800,
                 color: 'white',
-                mb: 3,
+                mb: { xs: 1, sm: 1.5, md: 3 },
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em',
+                px: { xs: 1, sm: 2, md: 0 },
+                textAlign: 'center',
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
               }}
             >
               UWE Lost & Found Portal
@@ -431,20 +532,31 @@ const Home: React.FC = () => {
               variant="h5" 
               component="h2" 
               sx={{ 
-                fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.3rem', lg: '1.5rem' },
                 color: 'rgba(255, 255, 255, 0.9)',
-                mb: 6,
+                mb: { xs: 3, sm: 4, md: 6 },
                 fontWeight: 400,
                 maxWidth: '600px',
                 mx: 'auto',
                 lineHeight: 1.6,
+                px: { xs: 2, md: 0 },
+                textShadow: '0 1px 2px rgba(0,0,0,0.2)',
               }}
             >
               Connect with fellow students to find lost items and help others recover their belongings
             </Typography>
 
             {/* Statistics Cards */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mb: 8, flexWrap: 'wrap' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: { xs: 1, sm: 1.5, md: 3 }, 
+              mb: { xs: 2.5, sm: 3, md: 8 }, 
+              flexWrap: 'wrap',
+              px: { xs: 1, sm: 2, md: 0 },
+              maxWidth: { xs: '100%', sm: '500px', md: '600px' },
+              mx: 'auto',
+            }}>
               {[
                 { number: '50+', label: 'Items Found', color: '#4CAF50' },
                 { number: '200+', label: 'Students', color: '#2196F3' },
@@ -453,15 +565,19 @@ const Home: React.FC = () => {
                 <Card
                   key={index}
                   sx={{
-                    minWidth: 160,
-                    p: 3,
+                    minWidth: { xs: 90, sm: 110, md: 140, lg: 160 },
+                    p: { xs: 1.25, sm: 1.5, md: 3 },
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: 3,
+                    borderRadius: { xs: 1.5, sm: 2, md: 3 },
                     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    flex: { xs: '1 1 calc(50% - 4px)', sm: '1 1 calc(33.333% - 8px)', md: '0 1 auto' },
+                    textAlign: 'center',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 16px 48px rgba(0, 0, 0, 0.2)',
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
                     },
                   }}
                 >
@@ -470,8 +586,9 @@ const Home: React.FC = () => {
                     sx={{ 
                       color: stat.color,
                       fontWeight: 700,
-                      mb: 1,
-                      fontSize: '2.5rem',
+                      mb: { xs: 0.5, sm: 1 },
+                      fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.5rem' },
+                      lineHeight: 1,
                     }}
                   >
                     {stat.number}
@@ -480,8 +597,9 @@ const Home: React.FC = () => {
                     variant="body1" 
                     sx={{ 
                       color: '#666',
-                      fontWeight: 500,
-                      fontSize: '0.95rem',
+                      fontWeight: 600,
+                      fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.95rem' },
+                      lineHeight: 1.2,
                     }}
                   >
                     {stat.label}
@@ -491,23 +609,54 @@ const Home: React.FC = () => {
             </Box>
 
             {/* CTA Buttons */}
-            <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap', mb: 8 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              gap: { xs: 1.5, sm: 2, md: 3 }, 
+              justifyContent: 'center', 
+              flexWrap: 'wrap', 
+              mb: { xs: 3, sm: 4, md: 8 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              px: { xs: 1, sm: 2, md: 0 },
+              maxWidth: { xs: '100%', sm: '500px', md: '600px' },
+              mx: 'auto',
+            }}>
               <Button
                 variant="contained"
                 size="large"
                 sx={{
-                  px: 6,
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: 3,
+                  px: { xs: 3, sm: 4, md: 6 },
+                  py: { xs: 2, sm: 2.5, md: 2 },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontWeight: 700,
+                  borderRadius: { xs: 2, sm: 3 },
                   backgroundColor: '#1976d2',
                   boxShadow: '0 4px 20px rgba(25, 118, 210, 0.4)',
+                  minHeight: { xs: 52, sm: 56, md: 'auto' },
+                  width: { xs: '100%', sm: 'auto' },
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                    transition: 'left 0.5s',
+                  },
                   '&:hover': {
                     backgroundColor: '#1565c0',
                     transform: 'translateY(-2px)',
                     boxShadow: '0 8px 30px rgba(25, 118, 210, 0.6)',
+                    '&::before': {
+                      left: '100%',
+                    },
                   },
+                  '&:active': {
+                    transform: 'translateY(-1px)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onClick={() => navigate('/register')}
               >
@@ -517,19 +666,28 @@ const Home: React.FC = () => {
                 variant="outlined"
                 size="large"
                 sx={{
-                  px: 6,
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 600,
-                  borderRadius: 3,
+                  px: { xs: 3, sm: 4, md: 6 },
+                  py: { xs: 2, sm: 2.5, md: 2 },
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                  fontWeight: 700,
+                  borderRadius: { xs: 2, sm: 3 },
                   borderColor: 'white',
                   color: 'white',
                   borderWidth: 2,
+                  minHeight: { xs: 52, sm: 56, md: 'auto' },
+                  width: { xs: '100%', sm: 'auto' },
+                  backdropFilter: 'blur(10px)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
                     borderColor: 'white',
                     transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 30px rgba(255, 255, 255, 0.3)',
                   },
+                  '&:active': {
+                    transform: 'translateY(-1px)',
+                  },
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onClick={() => navigate('/lost')}
               >
@@ -538,41 +696,100 @@ const Home: React.FC = () => {
             </Box>
 
             {/* Features Grid */}
-            <Grid container spacing={4} sx={{ maxWidth: 800, mx: 'auto' }}>
+            <Grid 
+              container 
+              spacing={{ xs: 1, sm: 1.5, md: 3, lg: 4 }} 
+              sx={{ 
+                maxWidth: { xs: '100%', sm: 600, md: 800, lg: 1200, xl: 1400 },
+                mx: 'auto', 
+                px: { xs: 0.5, sm: 1, md: 0 },
+                justifyContent: 'center'
+              }}
+            >
               {[
-                { icon: <SearchIcon sx={{ fontSize: 32 }} />, title: 'Quick Search', desc: 'Find items instantly' },
-                { icon: <NotificationsIcon sx={{ fontSize: 32 }} />, title: 'Instant Alerts', desc: 'Get notified immediately' },
-                { icon: <AddCircleIcon sx={{ fontSize: 32 }} />, title: 'Easy Report', desc: 'Report in seconds' },
-                { icon: <SecurityIcon sx={{ fontSize: 32 }} />, title: 'Secure Platform', desc: 'Safe and reliable' }
+                { icon: <SearchIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Quick Search', desc: 'Find items instantly', link: '/search' },
+                { icon: <NotificationsIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Instant Alerts', desc: 'Get notified immediately', link: '/alerts' },
+                { icon: <AddCircleIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Easy Report', desc: 'Report in seconds', link: '/report' },
+                { icon: <SecurityIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Secure Platform', desc: 'Safe and reliable', link: '/security' },
+                { icon: <SpeedIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Fast Response', desc: 'Quick and efficient', link: '/about' },
+                { icon: <GroupIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Community Support', desc: 'Help from fellow students', link: '/team' },
+                { icon: <SupportAgentIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: '24/7 Support', desc: 'Always here to help', link: '/support' },
+                { icon: <VerifiedUserIcon sx={{ fontSize: { xs: 20, sm: 24, md: 32 } }} />, title: 'Verified Users', desc: 'Trusted community members', link: '/verified' }
               ].map((feature, index) => (
-                <Grid item xs={12} sm={6} key={index}>
+                <Grid 
+                  item 
+                  xs={6} 
+                  sm={4} 
+                  md={3} 
+                  lg={3}
+                  xl={3}
+                  key={index}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center'
+                  }}
+                >
                   <Card
+                    component={Button}
+                    onClick={() => navigate(feature.link)}
                     sx={{
-                      p: 3,
+                      p: { xs: 1.5, sm: 2, md: 3 },
                       textAlign: 'center',
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255, 255, 255, 0.2)',
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, sm: 2.5, md: 3 },
                       transition: 'all 0.3s ease',
+                      height: '100%',
+                      width: '100%',
+                      maxWidth: { xs: '100%', sm: 200, md: 250, lg: 280 },
+                      minHeight: { xs: 100, sm: 120, md: 160 },
+                      mx: 'auto',
+                      cursor: 'pointer',
+                      textTransform: 'none',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent)',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease',
+                      },
                       '&:hover': {
                         backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                        transform: 'translateY(-4px)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                        '&::before': {
+                          opacity: 1,
+                        },
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
                       },
                     }}
                   >
                     <Box
                       sx={{
-                        width: 64,
-                        height: 64,
+                        width: { xs: 40, sm: 48, md: 64 },
+                        height: { xs: 40, sm: 48, md: 64 },
                         borderRadius: '50%',
                         backgroundColor: 'rgba(255, 255, 255, 0.2)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         mx: 'auto',
-                        mb: 2,
+                        mb: { xs: 1, sm: 1.5, md: 2 },
                         color: 'white',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                          transform: 'scale(1.1)',
+                        },
                       }}
                     >
                       {feature.icon}
@@ -582,8 +799,9 @@ const Home: React.FC = () => {
                       sx={{ 
                         color: 'white', 
                         fontWeight: 600, 
-                        mb: 1,
-                        fontSize: '1.1rem',
+                        mb: { xs: 0.5, sm: 1 },
+                        fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1.1rem' },
+                        lineHeight: 1.2,
                       }}
                     >
                       {feature.title}
@@ -592,7 +810,8 @@ const Home: React.FC = () => {
                       variant="body2" 
                       sx={{ 
                         color: 'rgba(255, 255, 255, 0.8)',
-                        fontSize: '0.9rem',
+                        fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.9rem' },
+                        lineHeight: 1.3,
                       }}
                     >
                       {feature.desc}
@@ -606,11 +825,21 @@ const Home: React.FC = () => {
       </Box>
 
       {/* UWE Images Gallery Section */}
-      <Container maxWidth="lg" sx={{ mb: 8 }}>
-        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mb: { xs: 4, md: 8 }, px: { xs: 2, md: 0 } }}>
+        <Typography 
+          variant="h4" 
+          component="h2" 
+          gutterBottom 
+          align="center" 
+          sx={{ 
+            mb: { xs: 3, md: 4 },
+            fontSize: { xs: '1.5rem', md: '2rem' },
+            px: { xs: 2, md: 0 },
+          }}
+        >
           Welcome to UWE Bristol
         </Typography>
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -629,7 +858,7 @@ const Home: React.FC = () => {
                 alt="UWE Bristol Chancellors Scholarship"
                 style={{
                   width: '100%',
-                  height: '300px',
+                  height: '250px',
                   objectFit: 'cover',
                 }}
               />
@@ -641,13 +870,20 @@ const Home: React.FC = () => {
                   right: 0,
                   background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
                   color: 'white',
-                  p: 2,
+                  p: { xs: 1.5, md: 2 },
                 }}
               >
-                <Typography variant="h6" component="h3">
+                <Typography 
+                  variant="h6" 
+                  component="h3"
+                  sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}
+                >
                   UWE Bristol Chancellors Scholarship
                 </Typography>
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}
+                >
                   Supporting excellence in education and student success
                 </Typography>
               </Box>
@@ -671,7 +907,7 @@ const Home: React.FC = () => {
                 alt="UWE Bristol Campus"
                 style={{
                   width: '100%',
-                  height: '300px',
+                  height: '250px',
                   objectFit: 'cover',
                 }}
               />
@@ -683,13 +919,20 @@ const Home: React.FC = () => {
                   right: 0,
                   background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
                   color: 'white',
-                  p: 2,
+                  p: { xs: 1.5, md: 2 },
                 }}
               >
-                <Typography variant="h6" component="h3">
+                <Typography 
+                  variant="h6" 
+                  component="h3"
+                  sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}
+                >
                   UWE Bristol Campus
                 </Typography>
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}
+                >
                   A vibrant learning community where students thrive
                 </Typography>
               </Box>
@@ -699,11 +942,21 @@ const Home: React.FC = () => {
       </Container>
 
       {/* UWE Campus Maps Section */}
-      <Container maxWidth="lg" sx={{ mb: 8 }}>
-        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mb: { xs: 4, md: 8 }, px: { xs: 2, md: 0 } }}>
+        <Typography 
+          variant="h4" 
+          component="h2" 
+          gutterBottom 
+          align="center" 
+          sx={{ 
+            mb: { xs: 3, md: 4 },
+            fontSize: { xs: '1.5rem', md: '2rem' },
+            px: { xs: 2, md: 0 },
+          }}
+        >
           Campus Maps & Navigation
         </Typography>
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={6}>
             <Box
               sx={{
@@ -728,7 +981,7 @@ const Home: React.FC = () => {
                 alt="UWE Bristol Campus Map"
                 style={{
                   width: '100%',
-                  height: '300px',
+                  height: '250px',
                   objectFit: 'cover',
                 }}
               />
@@ -742,7 +995,7 @@ const Home: React.FC = () => {
                   p: 1,
                 }}
               >
-                <ZoomInIcon sx={{ color: 'white', fontSize: 20 }} />
+                <ZoomInIcon sx={{ color: 'white', fontSize: { xs: 18, md: 20 } }} />
               </Box>
               <Box
                 sx={{
@@ -752,13 +1005,20 @@ const Home: React.FC = () => {
                   right: 0,
                   background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
                   color: 'white',
-                  p: 2,
+                  p: { xs: 1.5, md: 2 },
                 }}
               >
-                <Typography variant="h6" component="h3">
+                <Typography 
+                  variant="h6" 
+                  component="h3"
+                  sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}
+                >
                   UWE Bristol Campus Overview
                 </Typography>
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}
+                >
                   Navigate around our beautiful campus facilities
                 </Typography>
               </Box>
@@ -788,7 +1048,7 @@ const Home: React.FC = () => {
                 alt="UWE Glenside Campus Map"
                 style={{
                   width: '100%',
-                  height: '300px',
+                  height: '250px',
                   objectFit: 'cover',
                 }}
               />
@@ -802,7 +1062,7 @@ const Home: React.FC = () => {
                   p: 1,
                 }}
               >
-                <ZoomInIcon sx={{ color: 'white', fontSize: 20 }} />
+                <ZoomInIcon sx={{ color: 'white', fontSize: { xs: 18, md: 20 } }} />
               </Box>
               <Box
                 sx={{
@@ -812,13 +1072,20 @@ const Home: React.FC = () => {
                   right: 0,
                   background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
                   color: 'white',
-                  p: 2,
+                  p: { xs: 1.5, md: 2 },
                 }}
               >
-                <Typography variant="h6" component="h3">
+                <Typography 
+                  variant="h6" 
+                  component="h3"
+                  sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}
+                >
                   Glenside Campus Map
                 </Typography>
-                <Typography variant="body2">
+                <Typography 
+                  variant="body2"
+                  sx={{ fontSize: { xs: '0.8rem', md: '0.875rem' } }}
+                >
                   Detailed map of the Glenside campus facilities
                 </Typography>
               </Box>
@@ -828,21 +1095,40 @@ const Home: React.FC = () => {
       </Container>
 
       {/* Features Section */}
-      <Container maxWidth="lg" sx={{ mb: 8 }}>
-        <Typography variant="h4" component="h2" gutterBottom align="center" sx={{ mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mb: { xs: 4, md: 8 }, px: { xs: 2, md: 0 } }}>
+        <Typography 
+          variant="h4" 
+          component="h2" 
+          gutterBottom 
+          align="center" 
+          sx={{ 
+            mb: { xs: 3, md: 4 },
+            fontSize: { xs: '1.5rem', md: '2rem' },
+            px: { xs: 2, md: 0 },
+          }}
+        >
           How It Works
         </Typography>
-        <Grid container spacing={4}>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={4}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                  <SearchIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  <SearchIcon sx={{ fontSize: { xs: 32, md: 40 }, color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h5" component="h3" gutterBottom align="center">
+                <Typography 
+                  variant="h5" 
+                  component="h3" 
+                  gutterBottom 
+                  align="center"
+                  sx={{ fontSize: { xs: '1.125rem', md: '1.5rem' } }}
+                >
                   Search
                 </Typography>
-                <Typography align="center">
+                <Typography 
+                  align="center"
+                  sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}
+                >
                   Browse through lost and found items to find what you're looking for
                 </Typography>
               </CardContent>
@@ -850,14 +1136,23 @@ const Home: React.FC = () => {
           </Grid>
           <Grid item xs={12} md={4}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                  <AddCircleIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  <AddCircleIcon sx={{ fontSize: { xs: 32, md: 40 }, color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h5" component="h3" gutterBottom align="center">
+                <Typography 
+                  variant="h5" 
+                  component="h3" 
+                  gutterBottom 
+                  align="center"
+                  sx={{ fontSize: { xs: '1.125rem', md: '1.5rem' } }}
+                >
                   Report
                 </Typography>
-                <Typography align="center">
+                <Typography 
+                  align="center"
+                  sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}
+                >
                   Report lost items or submit found items to help others
                 </Typography>
               </CardContent>
@@ -865,14 +1160,23 @@ const Home: React.FC = () => {
           </Grid>
           <Grid item xs={12} md={4}>
             <Card sx={{ height: '100%' }}>
-              <CardContent>
+              <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-                  <NotificationsIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                  <NotificationsIcon sx={{ fontSize: { xs: 32, md: 40 }, color: 'primary.main' }} />
                 </Box>
-                <Typography variant="h5" component="h3" gutterBottom align="center">
+                <Typography 
+                  variant="h5" 
+                  component="h3" 
+                  gutterBottom 
+                  align="center"
+                  sx={{ fontSize: { xs: '1.125rem', md: '1.5rem' } }}
+                >
                   Get Notified
                 </Typography>
-                <Typography align="center">
+                <Typography 
+                  align="center"
+                  sx={{ fontSize: { xs: '0.875rem', md: '1rem' } }}
+                >
                   Receive notifications when your lost item is found
                 </Typography>
               </CardContent>

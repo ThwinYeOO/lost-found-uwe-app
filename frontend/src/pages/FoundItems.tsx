@@ -305,7 +305,7 @@ const FoundItems: React.FC = () => {
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
           <Fade in={true} timeout={1000}>
             <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
               <Typography
@@ -437,7 +437,7 @@ const FoundItems: React.FC = () => {
         />
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 }, px: { xs: 1, sm: 2, md: 0 } }}>
 
         {/* Search and Filter Section */}
         <Paper

@@ -159,14 +159,18 @@ export const loginUser = async (identifier: string, password: string) => {
       throw new Error('Backend not available. Please check if your backend server is running.');
     }
     
+    if (!response.ok) {
+      throw new Error('Backend not available. Please check if your backend server is running.');
+    }
+    
     const users = await response.json();
     const user = users.find((u: any) => (u.email === identifier || u.name === identifier) && u.password === password);
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new Error('Wrong username or password');
     }
     return user;
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Backend not available')) {
+    if (error instanceof Error && (error.message.includes('Backend not available') || error.message.includes('Wrong username or password'))) {
       throw error;
     }
     throw new Error('Backend not available. Please check if your backend server is running.');
@@ -267,7 +271,7 @@ export const getUserById = async (userId: string): Promise<User> => {
 };
 
 // Message Operations
-export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'read'>): Promise<string> => {
+export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'read' | 'deliveredAt' | 'seenAt'>): Promise<string> => {
   try {
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: 'POST',
@@ -317,25 +321,52 @@ export const getMessages = async (userId: string, chatWith?: string): Promise<Me
 // Profile Photo Upload
 export const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
   try {
+    console.log('Creating FormData for upload...');
     const formData = new FormData();
     formData.append('profilePhoto', file);
     formData.append('userId', userId);
+
+    console.log('Sending upload request to:', `${API_BASE_URL}/upload-profile-photo`);
+    console.log('FormData contents:', {
+      hasProfilePhoto: formData.has('profilePhoto'),
+      hasUserId: formData.has('userId'),
+      userId: userId,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type
+    });
 
     const response = await fetch(`${API_BASE_URL}/upload-profile-photo`, {
       method: 'POST',
       body: formData,
     });
 
+    console.log('Upload response status:', response.status);
+    console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.details || 'Failed to upload profile photo');
+      let errorMessage = 'Failed to upload profile photo';
+      try {
+        const error = await response.json();
+        errorMessage = error.details || error.error || errorMessage;
+        console.error('Upload error response:', error);
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+        errorMessage = `Upload failed with status ${response.status}`;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    console.log('Upload success response:', data);
     return data.avatarUrl;
   } catch (error) {
     console.error('Error uploading profile photo:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error('Unknown error occurred during upload');
+    }
   }
 };
 
