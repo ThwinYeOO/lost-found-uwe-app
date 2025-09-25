@@ -31,6 +31,8 @@ import {
   Fade,
   Slide,
 } from '@mui/material';
+import { getItems } from '../services/firestore';
+import { Item } from '../types';
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -74,12 +76,96 @@ interface SearchResult {
 
 const QuickSearch: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState({
+    category: '',
+    location: '',
+    status: '',
+    sortBy: 'relevance'
+  });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [activeTab, setActiveTab] = useState(0);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Search functionality
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const allItems = await getItems(activeTab === 0 ? 'Lost' : 'Found');
+      
+      // Filter items based on search query and filters
+      let filteredItems = allItems.filter(item => {
+        const matchesQuery = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           item.type.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesCategory = !filters.category || item.type === filters.category;
+        const matchesLocation = !filters.location || item.locationLostFound.toLowerCase().includes(filters.location.toLowerCase());
+        
+        return matchesQuery && matchesCategory && matchesLocation;
+      });
+      
+      // Sort results
+      filteredItems.sort((a, b) => {
+        switch (filters.sortBy) {
+          case 'date':
+            return new Date(b.dateLostFound).getTime() - new Date(a.dateLostFound).getTime();
+          case 'title':
+            return a.name.localeCompare(b.name);
+          default:
+            return 0;
+        }
+      });
+      
+      // Convert to SearchResult format
+      const results: SearchResult[] = filteredItems.map(item => ({
+        id: item.id || '',
+        title: item.name,
+        description: item.description,
+        category: item.type,
+        location: item.locationLostFound,
+        dateFound: item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : '',
+        image: item.imageUrl || '/placeholder-item.jpg',
+        status: item.type.toLowerCase() as 'lost' | 'found',
+        contactInfo: {
+          name: item.reportName || 'Anonymous',
+          email: 'contact@uwe.ac.uk',
+          phone: item.phoneNumber || '+44 117 32 81000'
+        },
+        tags: [item.type, item.locationLostFound],
+        views: Math.floor(Math.random() * 100),
+        isVerified: true
+      }));
+      
+      setSearchResults(results);
+    } catch (err) {
+      setError('Failed to search items. Please try again.');
+      console.error('Search error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle search on Enter key
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setError(null);
+  };
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -88,98 +174,32 @@ const QuickSearch: React.FC = () => {
     { value: 'books', label: 'Books & Stationery' },
     { value: 'jewelry', label: 'Jewelry & Watches' },
     { value: 'bags', label: 'Bags & Backpacks' },
-    { value: 'keys', label: 'Keys & ID Cards' },
-    { value: 'sports', label: 'Sports Equipment' },
-    { value: 'other', label: 'Other Items' },
+    { value: 'keys', label: 'Keys & Access Cards' },
+    { value: 'other', label: 'Other' },
   ];
 
-  const sortOptions = [
-    { value: 'recent', label: 'Most Recent' },
-    { value: 'popular', label: 'Most Popular' },
-    { value: 'location', label: 'Nearest Location' },
-    { value: 'category', label: 'Category' },
+  const locations = [
+    'Frenchay Campus',
+    'Glenside Campus',
+    'City Campus',
+    'Bower Ashton Campus',
+    'Library',
+    'Cafeteria',
+    'Sports Center',
+    'Student Union',
   ];
-
-  // Mock search results
-  const mockResults: SearchResult[] = [
-    {
-      id: '1',
-      title: 'iPhone 13 Pro',
-      description: 'Black iPhone 13 Pro with clear case, found near the library entrance',
-      category: 'electronics',
-      location: 'Frenchay Campus - Library',
-      dateFound: '2024-01-15',
-      image: '/uploads/iphone.jpg',
-      status: 'found',
-      contactInfo: {
-        name: 'Sarah Johnson',
-        email: 'sarah.j@uwe.ac.uk',
-        phone: '07123456789',
-      },
-      tags: ['phone', 'apple', 'black', 'library'],
-      views: 45,
-      isVerified: true,
-    },
-    {
-      id: '2',
-      title: 'Blue Backpack',
-      description: 'Navy blue backpack with laptop compartment, contains textbooks',
-      category: 'bags',
-      location: 'Glenside Campus - Main Building',
-      dateFound: '2024-01-14',
-      image: '/uploads/backpack.jpg',
-      status: 'lost',
-      contactInfo: {
-        name: 'Mike Chen',
-        email: 'mike.chen@uwe.ac.uk',
-        phone: '07987654321',
-      },
-      tags: ['backpack', 'blue', 'laptop', 'textbooks'],
-      views: 32,
-      isVerified: true,
-    },
-    {
-      id: '3',
-      title: 'Gold Watch',
-      description: 'Vintage gold watch with leather strap, found in the cafeteria',
-      category: 'jewelry',
-      location: 'City Campus - Cafeteria',
-      dateFound: '2024-01-13',
-      image: '/uploads/watch.jpg',
-      status: 'found',
-      contactInfo: {
-        name: 'Emma Williams',
-        email: 'emma.w@uwe.ac.uk',
-        phone: '07555666777',
-      },
-      tags: ['watch', 'gold', 'vintage', 'leather'],
-      views: 28,
-      isVerified: false,
-    },
-  ];
-
-  const handleSearch = async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSearchResults(mockResults);
-    setIsLoading(false);
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery('');
-    setSearchResults([]);
-  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    setSearchResults([]);
   };
 
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch();
-    }
-  }, [searchQuery]);
+  const handleFilterChange = (filterType: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
 
   return (
     <Box>
@@ -211,278 +231,304 @@ const QuickSearch: React.FC = () => {
               maxWidth: '800px', 
               mx: 'auto',
               fontWeight: 300,
-              fontSize: { xs: '1.1rem', md: '1.3rem' },
+              mb: 4,
             }}
           >
-            Find items instantly with our advanced search functionality
+            Find lost items or check if someone found your belongings
           </Typography>
+
+          {/* Search Bar */}
+          <Box sx={{ maxWidth: '600px', mx: 'auto', mb: 4 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search for lost or found items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="primary" />
+                  </InputAdornment>
+                ),
+                endAdornment: searchQuery && (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleClearSearch} edge="end">
+                      <ClearIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 3,
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'primary.main',
+                    borderWidth: 2,
+                  },
+                },
+              }}
+            />
+          </Box>
+
+          {/* Search Button */}
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleSearch}
+            disabled={loading || !searchQuery.trim()}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
+            sx={{
+              px: 4,
+              py: 1.5,
+              borderRadius: 3,
+              textTransform: 'none',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.3)',
+                transform: 'translateY(-2px)',
+              },
+              '&:disabled': {
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.5)',
+              },
+            }}
+          >
+            {loading ? 'Searching...' : 'Search Items'}
+          </Button>
         </Container>
       </Box>
 
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        {/* Search Section */}
-        <Paper elevation={3} sx={{ p: 4, mb: 4, borderRadius: 3 }}>
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-            Search Items
-          </Typography>
-          
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                placeholder="Search for items, descriptions, or keywords..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="primary" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: searchQuery && (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleClearSearch} edge="end">
-                        <ClearIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  label="Category"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category.value} value={category.value}>
-                      {category.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>Sort By</InputLabel>
-                <Select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  label="Sort By"
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                >
-                  {sortOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+        {/* Tabs */}
+        <Box sx={{ mb: 4 }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            centered
+            sx={{
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                px: 4,
+              },
+            }}
+          >
+            <Tab label="Lost Items" />
+            <Tab label="Found Items" />
+          </Tabs>
+        </Box>
 
-          <Box sx={{ mt: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        {/* Filters */}
+        <Paper sx={{ p: 3, mb: 4, borderRadius: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <FilterIcon color="primary" />
+            <Typography variant="h6" fontWeight={600}>
+              Filters
+            </Typography>
             <Button
-              variant="contained"
-              onClick={handleSearch}
-              disabled={isLoading}
-              startIcon={isLoading ? <CircularProgress size={20} /> : <SearchIcon />}
-              sx={{ px: 4, py: 1.5, borderRadius: 2 }}
-            >
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
-            
-            <Button
-              variant="outlined"
-              startIcon={<FilterIcon />}
+              size="small"
               onClick={() => setShowFilters(!showFilters)}
-              sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+              sx={{ ml: 'auto' }}
             >
-              Advanced Filters
-            </Button>
-            
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={handleClearSearch}
-              sx={{ px: 4, py: 1.5, borderRadius: 2 }}
-            >
-              Clear All
+              {showFilters ? 'Hide' : 'Show'} Filters
             </Button>
           </Box>
+
+          {showFilters && (
+            <Fade in={showFilters}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Category</InputLabel>
+                    <Select
+                      value={filters.category}
+                      onChange={(e) => handleFilterChange('category', e.target.value)}
+                      label="Category"
+                    >
+                      <MenuItem value="">All Categories</MenuItem>
+                      {categories.slice(1).map((category) => (
+                        <MenuItem key={category.value} value={category.value}>
+                          {category.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Location</InputLabel>
+                    <Select
+                      value={filters.location}
+                      onChange={(e) => handleFilterChange('location', e.target.value)}
+                      label="Location"
+                    >
+                      <MenuItem value="">All Locations</MenuItem>
+                      {locations.map((location) => (
+                        <MenuItem key={location} value={location}>
+                          {location}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Sort By</InputLabel>
+                    <Select
+                      value={filters.sortBy}
+                      onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+                      label="Sort By"
+                    >
+                      <MenuItem value="relevance">Relevance</MenuItem>
+                      <MenuItem value="date">Date</MenuItem>
+                      <MenuItem value="title">Title</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Fade>
+          )}
         </Paper>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
         {/* Search Results */}
         {searchResults.length > 0 && (
           <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                Search Results ({searchResults.length})
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Chip icon={<TrendingIcon />} label="Popular" variant="outlined" />
-                <Chip icon={<TimeIcon />} label="Recent" variant="outlined" />
-                <Chip icon={<LocationIcon />} label="Nearby" variant="outlined" />
-              </Box>
-            </Box>
-
-            <Grid container spacing={3}>
-              {searchResults.map((item, index) => (
-                <Grid item xs={12} md={6} lg={4} key={item.id}>
-                  <Fade in timeout={300 + index * 100}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        borderRadius: 3,
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: '0 16px 48px rgba(0, 0, 0, 0.15)',
-                        },
-                      }}
-                    >
-                      <CardMedia
-                        component="img"
-                        height="200"
-                        image={item.image}
-                        alt={item.title}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                      <CardContent sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 600, flex: 1 }}>
-                            {item.title}
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            {item.isVerified && (
-                              <Chip
-                                icon={<CheckIcon />}
-                                label="Verified"
-                                size="small"
-                                color="success"
-                                variant="outlined"
-                              />
-                            )}
-                            <Chip
-                              label={item.status === 'found' ? 'Found' : 'Lost'}
-                              size="small"
-                              color={item.status === 'found' ? 'success' : 'warning'}
-                              variant="filled"
-                            />
-                          </Box>
-                        </Box>
-
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.6 }}>
-                          {item.description}
-                        </Typography>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                          <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2" color="text.secondary">
-                            {item.location}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                          <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                          <Typography variant="body2" color="text.secondary">
-                            {new Date(item.dateFound).toLocaleDateString()}
-                          </Typography>
-                        </Box>
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 3 }}>
-                          {item.tags.map((tag) => (
-                            <Chip key={tag} label={tag} size="small" variant="outlined" />
-                          ))}
-                        </Box>
-
-                        <Divider sx={{ my: 2 }} />
-
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar sx={{ width: 32, height: 32 }}>
-                              <PersonIcon />
-                            </Avatar>
-                            <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                {item.contactInfo.name}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {item.views} views
-                              </Typography>
-                            </Box>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <IconButton size="small">
-                              <PhoneIcon />
-                            </IconButton>
-                            <IconButton size="small">
-                              <EmailIcon />
-                            </IconButton>
-                            <IconButton size="small">
-                              <ShareIcon />
-                            </IconButton>
-                          </Box>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Fade>
-                </Grid>
-              ))}
-            </Grid>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+            </Typography>
           </Box>
         )}
 
-        {/* Search Tips */}
-        <Paper elevation={1} sx={{ p: 4, borderRadius: 3, bgcolor: 'rgba(33, 150, 243, 0.05)' }}>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <InfoIcon color="primary" />
-            Search Tips
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Use specific keywords"
-                    secondary="Try brand names, colors, or unique features"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Search by location"
-                    secondary="Include campus or building names"
-                  />
-                </ListItem>
-              </List>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Use tags effectively"
-                    secondary="Look for items with similar tags"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Check recent items"
-                    secondary="Sort by date to see latest additions"
-                  />
-                </ListItem>
-              </List>
-            </Grid>
+        {/* Results Grid */}
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress size={60} />
+          </Box>
+        ) : searchResults.length > 0 ? (
+          <Grid container spacing={3}>
+            {searchResults.map((item, index) => (
+              <Grid item xs={12} sm={6} md={4} key={item.id}>
+                <Slide direction="up" in timeout={300 + index * 100}>
+                  <Card
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                      },
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={item.image}
+                      alt={item.title}
+                      sx={{ objectFit: 'cover' }}
+                    />
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
+                        <Typography variant="h6" component="h3" sx={{ flexGrow: 1, fontWeight: 600 }}>
+                          {item.title}
+                        </Typography>
+                        <Chip
+                          label={item.status}
+                          color={item.status === 'lost' ? 'error' : 'success'}
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      </Box>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {item.description}
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <LocationIcon fontSize="small" color="action" />
+                        <Typography variant="body2" color="text.secondary">
+                          {item.location}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <TimeIcon fontSize="small" color="action" />
+                        <Typography variant="body2" color="text.secondary">
+                          {item.dateFound}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                        {item.tags.map((tag, tagIndex) => (
+                          <Chip
+                            key={tagIndex}
+                            label={tag}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                          />
+                        ))}
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ViewIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {item.views} views
+                          </Typography>
+                        </Box>
+                        {item.isVerified && (
+                          <CheckIcon fontSize="small" color="success" />
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Slide>
+              </Grid>
+            ))}
           </Grid>
-        </Paper>
+        ) : searchQuery && !loading ? (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <SearchIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+              No items found
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Try adjusting your search terms or filters
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 8 }}>
+            <SearchIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+              Start your search
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Enter keywords to find lost or found items
+            </Typography>
+          </Box>
+        )}
       </Container>
     </Box>
   );

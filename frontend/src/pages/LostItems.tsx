@@ -60,8 +60,11 @@ import {
 import LostItemForm, { LostItemData } from '../components/LostItemForm';
 import { getLostItems, searchLostItems, addItem } from '../services/firestore';
 import { Item, User } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 const LostItems: React.FC = () => {
+  console.log('=== LostItems component rendering ===');
+  const navigate = useNavigate();
   const [lostItems, setLostItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,7 @@ const LostItems: React.FC = () => {
   const [openForm, setOpenForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -95,16 +99,20 @@ const LostItems: React.FC = () => {
   });
 
   const fetchLostItems = async () => {
+    console.log('=== fetchLostItems function called ===');
     try {
       setLoading(true);
+      console.log('Starting to fetch lost items...');
       const items = await getLostItems();
+      console.log('Fetched items:', items);
+      console.log('Number of items:', items.length);
       setLostItems(items);
       setFilteredItems(items);
       
       // Calculate statistics
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const recentItems = items.filter(item => new Date(item.dateLostFound) >= oneWeekAgo).length;
+      const recentItems = items.filter(item => new Date(item.dateLostFound || 0) >= oneWeekAgo).length;
       const resolvedItems = items.filter(item => item.status === 'Found').length;
       
       setStats({
@@ -114,6 +122,7 @@ const LostItems: React.FC = () => {
       });
       
       setError(null);
+      console.log('Items set successfully, loading set to false');
     } catch (err) {
       setError('Failed to fetch lost items. Please try again later.');
       console.error('Error fetching lost items:', err);
@@ -123,6 +132,7 @@ const LostItems: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log('LostItems useEffect triggered - calling fetchLostItems');
     fetchLostItems();
   }, []);
 
@@ -133,6 +143,7 @@ const LostItems: React.FC = () => {
       try {
         const user: User = JSON.parse(storedUser);
         setCurrentUser(user);
+        setIsAuthenticated(true);
         setNewItem(prev => ({
           ...prev,
           reportUserId: user.id || '',
@@ -140,11 +151,20 @@ const LostItems: React.FC = () => {
         }));
       } catch (error) {
         console.error('Error parsing user data from localStorage:', error);
+        setIsAuthenticated(false);
       }
+    } else {
+      setIsAuthenticated(false);
     }
   }, []);
 
-  const handleOpenForm = () => setOpenForm(true);
+  const handleOpenForm = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setOpenForm(true);
+  };
   const handleCloseForm = () => setOpenForm(false);
 
   const handleContactOwner = (item: Item) => {
@@ -159,6 +179,12 @@ const LostItems: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
     try {
       await addItem(newItem);
       await fetchLostItems(); // Refresh the list after adding a new item
@@ -626,6 +652,10 @@ const LostItems: React.FC = () => {
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {filteredItems.length} {filteredItems.length === 1 ? 'Item' : 'Items'} Found
           </Typography>
+          {/* Debug info */}
+          <Typography variant="caption" sx={{ color: 'grey.500' }}>
+            Debug: lostItems={lostItems.length}, filteredItems={filteredItems.length}, loading={loading.toString()}
+          </Typography>
           <Chip
             icon={<TrendingUpIcon />}
             label={`${stats.recentItems} this week`}
@@ -633,6 +663,53 @@ const LostItems: React.FC = () => {
             variant="outlined"
           />
         </Box>
+
+        {/* Login Prompt for Unauthenticated Users */}
+        {!isAuthenticated && (
+          <Alert 
+            severity="info" 
+            sx={{ mb: 3, borderRadius: 2 }}
+            action={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  onClick={() => navigate('/login')}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Login
+                </Button>
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  onClick={() => navigate('/register')}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Register
+                </Button>
+              </Box>
+            }
+          >
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>🔐 Account Required to Report Items</strong>
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                To maintain security and help you recover your items, we require users to create an account before reporting lost or found items. This helps us:
+              </Typography>
+              <Box component="ul" sx={{ pl: 2, m: 0, fontSize: '0.875rem' }}>
+                <li>Verify your identity and contact information</li>
+                <li>Track your reported items and match them with others</li>
+                <li>Send you notifications when your items are found</li>
+                <li>Protect against spam and false reports</li>
+                <li>Connect you with the finder through secure messaging</li>
+              </Box>
+              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                Creating an account is free and takes less than 2 minutes!
+              </Typography>
+            </Box>
+          </Alert>
+        )}
 
         {/* Items Grid/List */}
         {filteredItems.length === 0 ? (

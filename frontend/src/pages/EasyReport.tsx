@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Typography,
@@ -72,6 +73,7 @@ interface ReportData {
 }
 
 const EasyReport: React.FC = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [reportData, setReportData] = useState<ReportData>({
     type: 'lost',
@@ -172,7 +174,9 @@ const EasyReport: React.FC = () => {
       // Get current user from localStorage
       const storedUser = localStorage.getItem('user');
       if (!storedUser) {
-        throw new Error('User not logged in');
+        alert('You need to login to report items. Redirecting to login page...');
+        navigate('/login');
+        return;
       }
       const currentUser = JSON.parse(storedUser);
 

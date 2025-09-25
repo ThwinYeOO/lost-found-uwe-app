@@ -67,7 +67,6 @@ import {
 
 const ContactUs = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
   const [formData, setFormData] = useState({
     name: '',
@@ -171,7 +170,7 @@ const ContactUs = () => {
           <Fade in timeout={1000}>
             <Box textAlign="center">
               <Typography 
-                variant={isMobile ? "h3" : "h2"} 
+                variant="h2" 
                 component="h1" 
                 gutterBottom
                 sx={{ 

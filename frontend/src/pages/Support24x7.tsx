@@ -126,7 +126,7 @@ const Support24x7: React.FC = () => {
         'Login problems',
         'Upload issues',
         'Search not working',
-        'Mobile app problems',
+        'App problems',
       ],
     },
     {
@@ -204,12 +204,43 @@ const Support24x7: React.FC = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowContactForm(false);
-    setShowSuccessDialog(true);
-    setFormData({ name: '', email: '', subject: '', priority: 'medium', message: '' });
+    
+    try {
+      // Get current user from localStorage if available
+      const storedUser = localStorage.getItem('user');
+      const userData = storedUser ? JSON.parse(storedUser) : null;
+      
+      // Create support ticket data
+      const ticketData = {
+        ...formData,
+        userId: userData?.id || null,
+        userName: userData?.name || formData.name,
+        userEmail: userData?.email || formData.email,
+        timestamp: new Date().toISOString(),
+        status: 'open',
+        ticketId: `TICKET-${Date.now()}`,
+      };
+
+      // Here you would typically send to your backend API
+      console.log('Support ticket submitted:', ticketData);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setShowContactForm(false);
+      setShowSuccessDialog(true);
+      setFormData({ 
+        name: userData?.name || '', 
+        email: userData?.email || '', 
+        subject: '', 
+        priority: 'medium', 
+        message: '' 
+      });
+    } catch (error) {
+      console.error('Error submitting support ticket:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

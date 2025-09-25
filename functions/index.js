@@ -6,12 +6,16 @@ const morgan = require('morgan');
 const admin = require('firebase-admin');
 const path = require('path');
 const fs = require('fs');
+const dotenv = require('dotenv');
 const multer = require('multer');
+
+// Load environment variables
+dotenv.config();
 
 // Initialize Firebase Admin
 admin.initializeApp();
-
 const db = admin.firestore();
+
 const app = express();
 
 // Middleware
@@ -20,22 +24,16 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
+// Add a simple root route for testing
+app.get('/', (req, res) => {
+  console.log('Root route hit');
+  res.json({ message: 'API is running', timestamp: new Date().toISOString() });
 });
 
+console.log('Registering routes...');
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage(); // Use memory storage for Cloud Functions
 const upload = multer({
   storage: storage,
   limits: {
@@ -51,27 +49,76 @@ const upload = multer({
   }
 });
 
-// Email service functions (simplified for Firebase Functions)
-const sendMessageNotification = async (messageData) => {
-  // Email notification logic would go here
-  console.log('Message notification would be sent:', messageData);
-};
-
-const sendWelcomeEmail = async (userData) => {
-  // Welcome email logic would go here
-  console.log('Welcome email would be sent:', userData);
-};
-
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // Test route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend is working!' });
+app.get('/test', (req, res) => {
+  console.log('Test route hit');
+  res.json({ message: 'Backend is working!', timestamp: new Date().toISOString() });
 });
 
+// Simple items route for testing
+app.get('/items-simple', (req, res) => {
+  console.log('Simple items route hit');
+  res.json({ message: 'Items route working', query: req.query });
+});
+
+// Login endpoint
+app.post('/login', async (req, res) => {
+  try {
+    const { emailOrName, password } = req.body;
+    console.log('Login attempt for:', emailOrName);
+    
+    if (!emailOrName || !password) {
+      return res.status(400).json({ error: 'Email/Name and password are required' });
+    }
+    
+    // Query users collection to find matching user
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where('email', '==', emailOrName).get();
+    
+    let user = null;
+    if (!snapshot.empty) {
+      // Found by email
+      user = snapshot.docs[0].data();
+      user.id = snapshot.docs[0].id;
+    } else {
+      // Try to find by name
+      const nameSnapshot = await usersRef.where('name', '==', emailOrName).get();
+      if (!nameSnapshot.empty) {
+        user = nameSnapshot.docs[0].data();
+        user.id = nameSnapshot.docs[0].id;
+      }
+    }
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Check password (in a real app, you'd hash passwords)
+    if (user.password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // Update last login
+    await usersRef.doc(user.id).update({
+      lastLogin: admin.firestore.Timestamp.now()
+    });
+    
+    // Remove password from response
+    delete user.password;
+    
+    console.log('Login successful for user:', user.name);
+    res.json(user);
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed', details: error.message });
+  }
+});
+
+console.log('Test route registered');
+
 // Routes
-app.get('/api/items', async (req, res) => {
+console.log('Registering items route...');
+app.get('/items', async (req, res) => {
   try {
     const { type, reportUserId } = req.query;
     console.log('Fetching items with type:', type, 'and reportUserId:', reportUserId);
@@ -106,7 +153,7 @@ app.get('/api/items', async (req, res) => {
   }
 });
 
-app.post('/api/items', async (req, res) => {
+app.post('/items', async (req, res) => {
   try {
     const itemData = {
       ...req.body,
@@ -124,7 +171,7 @@ app.post('/api/items', async (req, res) => {
   }
 });
 
-app.put('/api/items/:id', async (req, res) => {
+app.put('/items/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const itemData = {
@@ -161,7 +208,7 @@ app.put('/api/items/:id', async (req, res) => {
   }
 });
 
-app.get('/api/items/search', async (req, res) => {
+app.get('/items/search', async (req, res) => {
   try {
     const { query, type } = req.query;
     console.log('Searching items with query:', query, 'and type:', type);
@@ -196,7 +243,7 @@ app.get('/api/items/search', async (req, res) => {
 });
 
 // User routes
-app.get('/api/users', async (req, res) => {
+app.get('/users', async (req, res) => {
   try {
     const snapshot = await db.collection('users').get();
     const users = [];
@@ -213,7 +260,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-app.post('/api/users', async (req, res) => {
+app.post('/users', async (req, res) => {
   try {
     const userData = {
       ...req.body,
@@ -224,15 +271,6 @@ app.post('/api/users', async (req, res) => {
     };
     const docRef = await db.collection('users').add(userData);
     
-    // Send welcome email to new user
-    try {
-      await sendWelcomeEmail(userData);
-      console.log('Welcome email sent successfully');
-    } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
-      // Don't fail the user creation if email fails
-    }
-    
     res.status(201).json({ id: docRef.id, ...userData });
   } catch (error) {
     console.error('Error creating user:', error);
@@ -240,7 +278,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+app.put('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const userData = req.body;
@@ -273,7 +311,7 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-app.get('/api/users/search', async (req, res) => {
+app.get('/users/search', async (req, res) => {
   try {
     const { query } = req.query;
     console.log('Searching users with query:', query);
@@ -306,7 +344,7 @@ app.get('/api/users/search', async (req, res) => {
   }
 });
 
-app.get('/api/users/:id', async (req, res) => {
+app.get('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log('Fetching user with ID:', id);
@@ -332,7 +370,7 @@ app.get('/api/users/:id', async (req, res) => {
 });
 
 // Message routes
-app.post('/api/messages', async (req, res) => {
+app.post('/messages', async (req, res) => {
   try {
     const messageData = {
       ...req.body,
@@ -344,15 +382,6 @@ app.post('/api/messages', async (req, res) => {
     const docRef = await db.collection('messages').add(messageData);
     console.log('Message created with ID:', docRef.id);
     
-    // Send email notification to recipient
-    try {
-      await sendMessageNotification(messageData);
-      console.log('Email notification sent successfully');
-    } catch (emailError) {
-      console.error('Failed to send email notification:', emailError);
-      // Don't fail the message creation if email fails
-    }
-    
     res.status(201).json({ id: docRef.id, ...messageData });
   } catch (error) {
     console.error('Error creating message:', error);
@@ -360,7 +389,7 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-app.get('/api/messages', async (req, res) => {
+app.get('/messages', async (req, res) => {
   try {
     const { userId, chatWith } = req.query;
     console.log(`Fetching messages for user: ${userId}${chatWith ? ` (chat with: ${chatWith})` : ''}`);
@@ -443,8 +472,8 @@ app.get('/api/messages', async (req, res) => {
   }
 });
 
-// Profile photo upload endpoint
-app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req, res) => {
+// Profile photo upload endpoint (simplified for Cloud Functions)
+app.post('/upload-profile-photo', upload.single('profilePhoto'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -455,9 +484,9 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    // Generate the file URL
-    const baseUrl = process.env.FUNCTIONS_EMULATOR ? 'http://localhost:5001' : `https://${req.get('host')}`;
-    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // For Cloud Functions, we'll store the file in Firebase Storage
+    // For now, we'll just return a placeholder URL
+    const fileUrl = `https://storage.googleapis.com/your-bucket/profile-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
     
     // Update user's avatar in Firestore
     await db.collection('users').doc(userId).update({
@@ -478,7 +507,7 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
 });
 
 // Admin routes
-app.get('/api/admin/dashboard', async (req, res) => {
+app.get('/admin/dashboard', async (req, res) => {
   try {
     console.log('Fetching admin dashboard data');
     
@@ -584,7 +613,7 @@ app.get('/api/admin/dashboard', async (req, res) => {
 });
 
 // Admin user management routes
-app.delete('/api/admin/users/:id', async (req, res) => {
+app.delete('/admin/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log('Deleting user with ID:', id);
@@ -608,7 +637,7 @@ app.delete('/api/admin/users/:id', async (req, res) => {
   }
 });
 
-app.put('/api/admin/users/:id/role', async (req, res) => {
+app.put('/admin/users/:id/role', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
@@ -633,7 +662,7 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
   }
 });
 
-app.put('/api/admin/users/:id/status', async (req, res) => {
+app.put('/admin/users/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const { isActive } = req.body;
@@ -659,7 +688,7 @@ app.put('/api/admin/users/:id/status', async (req, res) => {
 });
 
 // Admin item management routes
-app.delete('/api/admin/items/:id', async (req, res) => {
+app.delete('/admin/items/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log('Deleting item with ID:', id);
@@ -684,7 +713,7 @@ app.delete('/api/admin/items/:id', async (req, res) => {
 });
 
 // Admin message management routes
-app.get('/api/admin/messages', async (req, res) => {
+app.get('/admin/messages', async (req, res) => {
   try {
     console.log('Fetching all messages for admin');
     
@@ -716,7 +745,7 @@ app.get('/api/admin/messages', async (req, res) => {
   }
 });
 
-app.delete('/api/admin/messages/:id', async (req, res) => {
+app.delete('/admin/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log('Deleting message with ID:', id);
@@ -746,5 +775,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something broke!', details: err.message });
 });
 
-// Export the API as a Firebase Function (1st Gen)
+// Catch-all route for debugging
+app.use('*', (req, res) => {
+  console.log('Catch-all route hit for:', req.originalUrl);
+  res.status(404).json({ error: 'Route not found', path: req.originalUrl });
+});
+
+console.log('All routes registered, exporting function...');
+// Export the API as a Firebase Function
 exports.api = functions.https.onRequest(app);

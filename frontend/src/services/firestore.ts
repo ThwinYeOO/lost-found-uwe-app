@@ -19,12 +19,12 @@ const ITEMS_COLLECTION = 'items';
 const USERS_COLLECTION = 'users';
 const MESSAGES_COLLECTION = 'messages';
 
-const API_BASE_URL = API_CONFIG.BASE_URL + '/api';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 // Items Operations
 export const addItem = async (item: Omit<Item, 'id'>) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/items`, {
+    const response = await fetch(`${API_BASE_URL}/api/items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,20 +47,40 @@ export const addItem = async (item: Omit<Item, 'id'>) => {
 
 export const getItems = async (type: 'Lost' | 'Found'): Promise<Item[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/items?type=${type}`);
+        const url = `${API_BASE_URL}/api/items?type=${type}`;
+    console.log('Fetching items from:', url);
+    console.log('API_BASE_URL:', API_BASE_URL);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
 
     if (!response.ok) {
       const error = await response.json();
+      console.error('API Error:', error);
       throw new Error(error.details || 'Failed to fetch items');
     }
 
     const data = await response.json();
-    return data.map((item: any) => ({
+    console.log('Raw response data:', data);
+    console.log('Items fetched successfully:', data.length, 'items');
+    
+    const transformedData = data.map((item: any) => ({
       ...item,
       dateLostFound: item.dateLostFound ? new Date(item.dateLostFound) : undefined
     }));
+    
+    console.log('Transformed data:', transformedData);
+    return transformedData;
   } catch (error) {
     console.error('Error getting items:', error);
+    console.error('Error details:', error instanceof Error ? error.message : String(error));
     throw error;
   }
 };
@@ -150,30 +170,32 @@ export const registerUser = async (userData: Omit<User, 'id'> & { password: stri
 
 export const loginUser = async (identifier: string, password: string) => {
   try {
-    // identifier can be email or name
-    const response = await fetch(`${API_BASE_URL}/users`);
-    
-    // Check if response is HTML (404 error page) instead of JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Backend not available. Please check if your backend server is running.');
-    }
-    
+    console.log('Attempting login for:', identifier);
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        emailOrName: identifier,
+        password: password
+      })
+    });
+
+    console.log('Login response status:', response.status);
+
     if (!response.ok) {
-      throw new Error('Backend not available. Please check if your backend server is running.');
+      const error = await response.json();
+      console.error('Login error:', error);
+      throw new Error(error.error || 'Login failed');
     }
-    
-    const users = await response.json();
-    const user = users.find((u: any) => (u.email === identifier || u.name === identifier) && u.password === password);
-    if (!user) {
-      throw new Error('Wrong username or password');
-    }
+
+    const user = await response.json();
+    console.log('Login successful for user:', user);
     return user;
   } catch (error) {
-    if (error instanceof Error && (error.message.includes('Backend not available') || error.message.includes('Wrong username or password'))) {
-      throw error;
-    }
-    throw new Error('Backend not available. Please check if your backend server is running.');
+    console.error('Login error:', error);
+    throw error;
   }
 };
 
@@ -271,9 +293,9 @@ export const getUserById = async (userId: string): Promise<User> => {
 };
 
 // Message Operations
-export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'read' | 'deliveredAt' | 'seenAt'>): Promise<string> => {
+export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'read'>): Promise<string> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/messages`, {
+        const response = await fetch(`${API_BASE_URL}/api/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -296,9 +318,9 @@ export const sendMessage = async (message: Omit<Message, 'id' | 'timestamp' | 'r
 
 export const getMessages = async (userId: string, chatWith?: string): Promise<Message[]> => {
   try {
-    const url = chatWith 
-      ? `${API_BASE_URL}/messages?userId=${userId}&chatWith=${chatWith}`
-      : `${API_BASE_URL}/messages?userId=${userId}`;
+        const url = chatWith 
+          ? `${API_BASE_URL}/api/messages?userId=${userId}&chatWith=${chatWith}`
+          : `${API_BASE_URL}/api/messages?userId=${userId}`;
 
     const response = await fetch(url);
 
@@ -321,59 +343,32 @@ export const getMessages = async (userId: string, chatWith?: string): Promise<Me
 // Profile Photo Upload
 export const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
   try {
-    console.log('Creating FormData for upload...');
     const formData = new FormData();
     formData.append('profilePhoto', file);
     formData.append('userId', userId);
 
-    console.log('Sending upload request to:', `${API_BASE_URL}/upload-profile-photo`);
-    console.log('FormData contents:', {
-      hasProfilePhoto: formData.has('profilePhoto'),
-      hasUserId: formData.has('userId'),
-      userId: userId,
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type
-    });
-
-    const response = await fetch(`${API_BASE_URL}/upload-profile-photo`, {
+        const response = await fetch(`${API_BASE_URL}/api/upload-profile-photo`, {
       method: 'POST',
       body: formData,
     });
 
-    console.log('Upload response status:', response.status);
-    console.log('Upload response headers:', Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
-      let errorMessage = 'Failed to upload profile photo';
-      try {
-        const error = await response.json();
-        errorMessage = error.details || error.error || errorMessage;
-        console.error('Upload error response:', error);
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError);
-        errorMessage = `Upload failed with status ${response.status}`;
-      }
-      throw new Error(errorMessage);
+      const error = await response.json();
+      throw new Error(error.details || 'Failed to upload profile photo');
     }
 
     const data = await response.json();
-    console.log('Upload success response:', data);
     return data.avatarUrl;
   } catch (error) {
     console.error('Error uploading profile photo:', error);
-    if (error instanceof Error) {
-      throw error;
-    } else {
-      throw new Error('Unknown error occurred during upload');
-    }
+    throw error;
   }
 };
 
 // Admin Operations
 export const getAdminDashboard = async (): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/dashboard`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/dashboard`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -389,7 +384,7 @@ export const getAdminDashboard = async (): Promise<any> => {
 
 export const deleteUser = async (userId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
       method: 'DELETE',
     });
 
@@ -405,7 +400,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
 
 export const updateUserRole = async (userId: string, role: 'user' | 'admin'): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/role`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -425,7 +420,7 @@ export const updateUserRole = async (userId: string, role: 'user' | 'admin'): Pr
 
 export const updateUserStatus = async (userId: string, isActive: boolean): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -445,7 +440,7 @@ export const updateUserStatus = async (userId: string, isActive: boolean): Promi
 
 export const deleteItem = async (itemId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/items/${itemId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/items/${itemId}`, {
       method: 'DELETE',
     });
 
@@ -461,7 +456,7 @@ export const deleteItem = async (itemId: string): Promise<void> => {
 
 export const getAllMessages = async (): Promise<Message[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/messages`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/messages`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -481,7 +476,7 @@ export const getAllMessages = async (): Promise<Message[]> => {
 
 export const deleteMessage = async (messageId: string): Promise<void> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/messages/${messageId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/messages/${messageId}`, {
       method: 'DELETE',
     });
 

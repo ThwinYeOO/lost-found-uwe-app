@@ -74,9 +74,6 @@ const upload = multer({
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Serve static React files
-app.use(express.static(path.join(__dirname, '../../frontend/build')));
-
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
@@ -468,7 +465,7 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
     }
 
     // Generate the file URL
-    const baseUrl = process.env.FUNCTIONS_EMULATOR ? 'http://localhost:5001' : `${req.protocol}://${req.get('host')}`;
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
     const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
     
     // Update user's avatar in Firestore
@@ -756,11 +753,6 @@ app.delete('/api/admin/messages/:id', async (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Something broke!', details: err.message });
-});
-
-// Catch-all: serve React's index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5001;

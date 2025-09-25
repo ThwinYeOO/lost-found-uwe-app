@@ -3,11 +3,10 @@
 const DEV_API_URL = 'http://localhost:5001';
 
 // For production (Firebase hosting)
-const PROD_API_URL = '';
+const PROD_API_URL = 'https://us-central1-lostfoundportal-dbbb7.cloudfunctions.net';
 
 // Use environment variable or default based on environment
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' ? PROD_API_URL : DEV_API_URL);
+const API_BASE_URL = process.env.REACT_APP_API_URL || PROD_API_URL;
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,

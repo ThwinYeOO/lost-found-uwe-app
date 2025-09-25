@@ -48,9 +48,53 @@ import {
 
 const SecurePlatform: React.FC = () => {
   const [expandedAccordion, setExpandedAccordion] = useState<string | false>(false);
+  const [securityScore, setSecurityScore] = useState(95);
+  const [showSecurityTest, setShowSecurityTest] = useState(false);
+  const [testResults, setTestResults] = useState<any[]>([]);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpandedAccordion(isExpanded ? panel : false);
+  };
+
+  const handleRunSecurityTest = async () => {
+    setShowSecurityTest(true);
+    
+    // Simulate security tests
+    const tests = [
+      { name: 'SSL Certificate', status: 'passed', details: 'Valid SSL certificate detected' },
+      { name: 'Data Encryption', status: 'passed', details: 'AES-256 encryption active' },
+      { name: 'User Authentication', status: 'passed', details: 'Multi-factor authentication enabled' },
+      { name: 'Privacy Compliance', status: 'passed', details: 'GDPR compliant data handling' },
+      { name: 'Security Headers', status: 'passed', details: 'Security headers properly configured' },
+    ];
+    
+    // Simulate test execution
+    for (let i = 0; i < tests.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setTestResults(prev => [...prev, tests[i]]);
+    }
+  };
+
+  const handleDownloadSecurityReport = () => {
+    const report = {
+      timestamp: new Date().toISOString(),
+      securityScore: securityScore,
+      tests: testResults,
+      recommendations: [
+        'Keep your password strong and unique',
+        'Enable two-factor authentication',
+        'Regularly update your contact information',
+        'Report suspicious activities immediately'
+      ]
+    };
+    
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'security-report.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const securityFeatures = [

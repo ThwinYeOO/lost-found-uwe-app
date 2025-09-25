@@ -18,6 +18,7 @@ export interface User {
   name: string;
   phoneNumber: string;
   uweId: string;
+  password?: string;  // For login purposes
   avatar?: string;
   role?: 'user' | 'admin';
   isActive?: boolean;
@@ -40,6 +41,7 @@ export interface Message {
   status: 'sending' | 'sent' | 'delivered' | 'seen';
   deliveredAt?: Date;
   seenAt?: Date;
+  messageType?: 'chat' | 'email'; // Distinguish between chat and email messages
 }
 
 export interface AdminStats {

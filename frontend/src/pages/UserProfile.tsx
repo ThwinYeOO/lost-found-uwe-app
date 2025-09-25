@@ -30,15 +30,20 @@ import {
   Cancel as CancelIcon,
   Message as MessageIcon,
   Send as SendIcon,
+  LocationOn as LocationIcon,
+  AccessTime as TimeIcon,
+  Search as SearchIcon,
+  Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { getUserById, sendMessage } from '../services/firestore';
-import { User } from '../types';
+import { getUserById, sendMessage, getItems } from '../services/firestore';
+import { User, Item } from '../types';
 import ChatBox from '../components/ChatBox';
 
 const UserProfile: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId: paramUserId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const userId = paramUserId || searchParams.get('userId');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,34 +52,89 @@ const UserProfile: React.FC = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [userItems, setUserItems] = useState<Item[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
+      console.log('UserProfile useEffect - userId:', userId);
       if (!userId) {
+        console.log('No userId, setting error');
         setError('User ID is required');
         setLoading(false);
         return;
       }
 
       try {
+        console.log('Starting to fetch user data...');
         setLoading(true);
         const userData = await getUserById(userId);
+        console.log('User data received:', userData);
         setUser(userData);
         
         // Check if chat should be opened from URL parameter
         if (searchParams.get('chat') === 'true') {
+          console.log('Opening chat from URL parameter');
           setChatOpen(true);
         }
       } catch (err) {
         console.error('Error fetching user:', err);
         setError('Failed to load user profile');
       } finally {
+        console.log('Setting loading to false');
         setLoading(false);
       }
     };
 
     fetchUser();
   }, [userId, searchParams]);
+
+  // Fetch user's items when user is loaded
+  useEffect(() => {
+    const fetchUserItems = async () => {
+      if (!user?.id) return;
+
+      try {
+        setItemsLoading(true);
+        // Fetch both lost and found items for this user
+        const [lostItems, foundItems] = await Promise.all([
+          getItems('Lost'),
+          getItems('Found')
+        ]);
+
+        // Filter items by the current user's ID
+        const userLostItems = lostItems.filter(item => item.reportUserId === user.id);
+        const userFoundItems = foundItems.filter(item => item.reportUserId === user.id);
+        
+        setUserItems([...userLostItems, ...userFoundItems]);
+      } catch (err) {
+        console.error('Error fetching user items:', err);
+      } finally {
+        setItemsLoading(false);
+      }
+    };
+
+    fetchUserItems();
+  }, [user?.id]);
+
+  // Check authentication status
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const user: User = JSON.parse(storedUser);
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        setIsAuthenticated(false);
+      }
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
 
   const getAccountStatus = (user: User) => {
     // You can add logic here to determine account status
@@ -87,19 +147,13 @@ const UserProfile: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!messageText.trim() || !user) return;
+    if (!messageText.trim() || !user || !currentUser) return;
 
     setSendingMessage(true);
     try {
-      // Get current user from localStorage
-      const storedUser = localStorage.getItem('user');
-      if (!storedUser) {
-        throw new Error('User not logged in');
-      }
-      const currentUser = JSON.parse(storedUser);
 
       const messageData = {
-        senderId: currentUser.id,
+        senderId: currentUser.id!,
         senderName: currentUser.name,
         senderEmail: currentUser.email,
         recipientId: user.id!,
@@ -108,6 +162,7 @@ const UserProfile: React.FC = () => {
         subject: `Message from ${currentUser.name}`,
         content: messageText.trim(),
         status: 'sending' as const,
+        messageType: 'email' as const, // Distinguish email messages from chat messages
       };
 
       await sendMessage(messageData);
@@ -124,6 +179,10 @@ const UserProfile: React.FC = () => {
   };
 
   const handleOpenMessageDialog = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     setMessageDialogOpen(true);
   };
 
@@ -133,15 +192,16 @@ const UserProfile: React.FC = () => {
   };
 
   const handleOpenChat = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     setChatOpen(true);
   };
 
   const handleCloseChat = () => {
     setChatOpen(false);
   };
-
-  // Get current user from localStorage
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -155,7 +215,8 @@ const UserProfile: React.FC = () => {
     }
   }, []);
 
-  if (loading || !currentUser) {
+  if (loading) {
+    console.log('UserProfile rendering loading state');
     return (
       <Box
         sx={{
@@ -229,6 +290,10 @@ const UserProfile: React.FC = () => {
                         height: '100%',
                         objectFit: 'cover',
                       }}
+                      onError={(e) => {
+                        console.log('Avatar image failed to load, showing fallback');
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <PersonIcon sx={{ fontSize: '3rem' }} />
@@ -274,6 +339,53 @@ const UserProfile: React.FC = () => {
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Login Prompt for Unauthenticated Users */}
+      {!isAuthenticated && (
+        <Alert 
+          severity="info" 
+          sx={{ mb: 3, borderRadius: 2 }}
+          action={
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => navigate('/login')}
+                sx={{ fontWeight: 600 }}
+              >
+                Login
+              </Button>
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => navigate('/register')}
+                sx={{ fontWeight: 600 }}
+              >
+                Register
+              </Button>
+            </Box>
+          }
+        >
+          <Box>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>💬 Login Required to Message {user?.name}</strong>
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              To send messages or start a chat with {user?.name}, you need to create an account. This ensures:
+            </Typography>
+            <Box component="ul" sx={{ pl: 2, m: 0, fontSize: '0.875rem' }}>
+              <li>Secure and private communication between users</li>
+              <li>Message history is saved for your reference</li>
+              <li>Notifications when you receive new messages</li>
+              <li>Protection against spam and unwanted messages</li>
+              <li>Ability to report inappropriate behavior</li>
+            </Box>
+            <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+              Creating an account is free and takes less than 2 minutes!
+            </Typography>
+          </Box>
+        </Alert>
+      )}
 
       {/* Account Details */}
       <Card sx={{ mb: 3 }}>
@@ -391,6 +503,111 @@ const UserProfile: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* User's Posted Items */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h5" component="h3" gutterBottom>
+            {user?.name}'s Posted Items
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+          
+          {itemsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : userItems.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <SearchIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No Items Posted Yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {user?.name} hasn't posted any lost or found items yet.
+              </Typography>
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {userItems.map((item) => (
+                <Grid item xs={12} sm={6} md={4} key={item.id}>
+                  <Card 
+                    sx={{ 
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 3,
+                      },
+                    }}
+                  >
+                    {item.imageUrl && (
+                      <Box
+                        component="img"
+                        src={item.imageUrl}
+                        alt={item.name}
+                        sx={{
+                          width: '100%',
+                          height: 200,
+                          objectFit: 'cover',
+                        }}
+                        onError={(e) => {
+                          console.log('Item image failed to load, hiding image');
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant="h6" component="h4" sx={{ fontWeight: 600, flex: 1 }}>
+                          {item.name}
+                        </Typography>
+                        <Chip
+                          label={item.type}
+                          color={item.type === 'Lost' ? 'error' : 'success'}
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
+                      </Box>
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flex: 1 }}>
+                        {item.description}
+                      </Typography>
+                      
+                      <Box sx={{ mt: 'auto' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <LocationIcon sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {item.locationLostFound}
+                          </Typography>
+                        </Box>
+                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <TimeIcon sx={{ fontSize: 16, mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'Date not specified'}
+                          </Typography>
+                        </Box>
+                        
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<ViewIcon />}
+                          fullWidth
+                          onClick={() => navigate(`/${item.type.toLowerCase()}-items`)}
+                        >
+                          View Details
+                        </Button>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Message Dialog */}
       <Dialog
         open={messageDialogOpen}
@@ -443,7 +660,7 @@ const UserProfile: React.FC = () => {
       />
 
       {/* Chat Box */}
-      {user && (
+      {user && currentUser && (
         <ChatBox
           recipient={user}
           currentUser={currentUser}

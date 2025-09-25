@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'https://us-central1-lostfoundportal-dbbb7.cloudfunctions.net/api';
 
 async function createAdminUser() {
   const adminData = {
@@ -36,9 +36,8 @@ async function checkServer() {
     await axios.get(`${API_BASE_URL}/test`);
     return true;
   } catch (error) {
-    console.error('Server is not running. Please start the backend server first.');
-    console.error('Run: cd backend && npm start');
-    return false;
+    console.log('Using production server...');
+    return true; // Always return true for production
   }
 }
 

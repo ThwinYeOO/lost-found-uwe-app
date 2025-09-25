@@ -62,8 +62,10 @@ import {
 import FoundItemForm, { FoundItemData } from '../components/FoundItemForm';
 import { getFoundItems, searchFoundItems, addItem } from '../services/firestore';
 import { Item, User } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 const FoundItems: React.FC = () => {
+  const navigate = useNavigate();
   const [foundItems, setFoundItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +73,7 @@ const FoundItems: React.FC = () => {
   const [openForm, setOpenForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -106,7 +109,7 @@ const FoundItems: React.FC = () => {
       // Calculate statistics
       const now = new Date();
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const recentItems = items.filter(item => new Date(item.dateLostFound) >= oneWeekAgo).length;
+      const recentItems = items.filter(item => new Date(item.dateLostFound || 0) >= oneWeekAgo).length;
       const claimedItems = items.filter(item => item.status === 'Claimed').length;
       
       setStats({
@@ -135,6 +138,7 @@ const FoundItems: React.FC = () => {
       try {
         const user: User = JSON.parse(storedUser);
         setCurrentUser(user);
+        setIsAuthenticated(true);
         setNewItem(prev => ({
           ...prev,
           reportUserId: user.id || '',
@@ -142,11 +146,20 @@ const FoundItems: React.FC = () => {
         }));
       } catch (error) {
         console.error('Error parsing user data from localStorage:', error);
+        setIsAuthenticated(false);
       }
+    } else {
+      setIsAuthenticated(false);
     }
   }, []);
 
-  const handleOpenForm = () => setOpenForm(true);
+  const handleOpenForm = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setOpenForm(true);
+  };
   const handleCloseForm = () => setOpenForm(false);
 
   const handleContactOwner = (item: Item) => {
@@ -161,6 +174,12 @@ const FoundItems: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
     try {
       await addItem(newItem);
       await fetchFoundItems(); // Refresh the list after adding a new item
@@ -554,6 +573,53 @@ const FoundItems: React.FC = () => {
             variant="outlined"
           />
         </Box>
+
+        {/* Login Prompt for Unauthenticated Users */}
+        {!isAuthenticated && (
+          <Alert 
+            severity="info" 
+            sx={{ mb: 3, borderRadius: 2 }}
+            action={
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  onClick={() => navigate('/login')}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Login
+                </Button>
+                <Button 
+                  color="inherit" 
+                  size="small" 
+                  onClick={() => navigate('/register')}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Register
+                </Button>
+              </Box>
+            }
+          >
+            <Box>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>🔐 Account Required to Report Items</strong>
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                To maintain security and help you recover your items, we require users to create an account before reporting lost or found items. This helps us:
+              </Typography>
+              <Box component="ul" sx={{ pl: 2, m: 0, fontSize: '0.875rem' }}>
+                <li>Verify your identity and contact information</li>
+                <li>Track your reported items and match them with others</li>
+                <li>Send you notifications when your items are found</li>
+                <li>Protect against spam and false reports</li>
+                <li>Connect you with the finder through secure messaging</li>
+              </Box>
+              <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                Creating an account is free and takes less than 2 minutes!
+              </Typography>
+            </Box>
+          </Alert>
+        )}
 
         {/* Items Grid/List */}
         {filteredItems.length === 0 ? (

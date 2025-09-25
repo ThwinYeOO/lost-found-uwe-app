@@ -81,15 +81,28 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Typography variant="h5" component="div">
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      fullScreen={false}
+      PaperProps={{
+        sx: {
+          margin: { xs: 1, sm: 'auto' },
+          maxHeight: { xs: '95vh', sm: '90vh' },
+          width: { xs: '100%', sm: 'auto' }
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Typography variant="h5" component="div" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Report Lost Item
         </Typography>
       </DialogTitle>
       <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <Grid container spacing={2}>
+        <DialogContent sx={{ px: { xs: 2, sm: 3 }, pb: 1 }}>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
             <Grid item xs={12}>
               <TextField
                 required
@@ -98,6 +111,9 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 name="itemName"
                 value={formData.itemName}
                 onChange={handleChange}
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -109,6 +125,9 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               >
                 {categories.map((category) => (
                   <MenuItem key={category} value={category}>
@@ -126,6 +145,9 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               >
                 {locations.map((location) => (
                   <MenuItem key={location} value={location}>
@@ -145,6 +167,9 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Please provide detailed description of your lost item..."
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -168,6 +193,9 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 name="contactInfo"
                 value={formData.contactInfo}
                 onChange={handleChange}
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               />
             </Grid>
             <Grid item xs={12}>
@@ -178,13 +206,41 @@ const LostItemForm: React.FC<LostItemFormProps> = ({ open, onClose, onSubmit }) 
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
+                inputProps={{
+                  style: { fontSize: '16px' } // Prevents zoom on iOS
+                }}
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained" color="primary">
+        <DialogActions sx={{ 
+          px: { xs: 2, sm: 3 }, 
+          py: 2,
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: { xs: 1, sm: 2 }
+        }}>
+          <Button 
+            onClick={onClose}
+            fullWidth={false}
+            sx={{ 
+              minWidth: { xs: '100%', sm: 'auto' },
+              minHeight: '48px',
+              order: { xs: 2, sm: 1 }
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            color="primary"
+            fullWidth={false}
+            sx={{ 
+              minWidth: { xs: '100%', sm: 'auto' },
+              minHeight: '48px',
+              order: { xs: 1, sm: 2 }
+            }}
+          >
             Submit Report
           </Button>
         </DialogActions>

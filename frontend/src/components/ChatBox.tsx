@@ -82,8 +82,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipient, currentUser, open, onClose
       setLoading(true);
       
       // Get messages between current user and recipient using the new chat endpoint
-      const chatMessages = await getMessages(currentUser.id!, recipient.id);
+      const allMessages = await getMessages(currentUser.id!, recipient.id);
       
+      // Filter out email messages, only show chat messages
+      const chatMessages = allMessages.filter(message => 
+        message.messageType !== 'email' || !message.messageType
+      );
       
       setMessages(chatMessages);
     } catch (error) {
@@ -114,6 +118,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipient, currentUser, open, onClose
       timestamp: new Date(),
       read: false,
       status: 'sending',
+      messageType: 'chat', // Mark as chat message
     };
 
     setMessages(prev => [...prev, optimisticMessage]);
@@ -129,6 +134,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipient, currentUser, open, onClose
         subject: `Chat with ${recipient.name}`,
         content: messageContent,
         status: 'sending' as const,
+        messageType: 'chat' as const, // Mark as chat message
       };
 
       await sendMessage(messageData);

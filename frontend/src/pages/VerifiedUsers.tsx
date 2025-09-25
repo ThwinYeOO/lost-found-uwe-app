@@ -210,11 +210,52 @@ const VerifiedUsers: React.FC = () => {
 
   const handleVerificationSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setShowVerificationDialog(false);
-    setShowSuccessDialog(true);
+    
+    try {
+      // Get current user from localStorage
+      const storedUser = localStorage.getItem('user');
+      if (!storedUser) {
+        throw new Error('User not logged in');
+      }
+      const currentUser = JSON.parse(storedUser);
+      
+      // Create verification request data
+      const verificationRequest = {
+        userId: currentUser.id,
+        studentId: verificationData.studentId,
+        fullName: verificationData.fullName,
+        email: verificationData.email,
+        phone: verificationData.phone,
+        department: verificationData.department,
+        yearOfStudy: verificationData.yearOfStudy,
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        requestId: `VERIFY-${Date.now()}`,
+      };
+
+      // Here you would typically send to your backend API
+      console.log('Verification request submitted:', verificationRequest);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setShowVerificationDialog(false);
+      setShowSuccessDialog(true);
+      
+      // Reset form
+      setVerificationData({
+        studentId: '',
+        fullName: '',
+        email: '',
+        phone: '',
+        department: '',
+        yearOfStudy: '',
+      });
+    } catch (error) {
+      console.error('Error submitting verification request:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
