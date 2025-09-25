@@ -88,7 +88,7 @@ export const getItems = async (type: 'Lost' | 'Found'): Promise<Item[]> => {
 export const searchItems = async (type: 'Lost' | 'Found', searchQuery: string): Promise<Item[]> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/items/search?type=${type}&query=${encodeURIComponent(searchQuery)}`
+      `${API_BASE_URL}/api/items/search?type=${type}&query=${encodeURIComponent(searchQuery)}`
     );
 
     if (!response.ok) {
@@ -110,7 +110,7 @@ export const searchItems = async (type: 'Lost' | 'Found', searchQuery: string): 
 // User Operations
 export const getUsers = async (): Promise<User[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users`);
+    const response = await fetch(`${API_BASE_URL}/api/users`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -156,7 +156,7 @@ export const registerUser = async (userData: Omit<User, 'id'> & { password: stri
     throw new Error('Email already exists');
   }
   // Add user
-  const res = await fetch(`${API_BASE_URL}/users`, {
+  const res = await fetch(`${API_BASE_URL}/api/users`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData),
@@ -201,7 +201,7 @@ export const loginUser = async (identifier: string, password: string) => {
 
 export const updateUser = async (userId: string, userData: Partial<Omit<User, 'id'>>) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +240,7 @@ export const searchFoundItems = async (searchQuery: string): Promise<Item[]> => 
 
 export const getUserItems = async (userId: string, type: 'Lost' | 'Found'): Promise<Item[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/items?type=${type}&reportUserId=${encodeURIComponent(userId)}`);
+    const response = await fetch(`${API_BASE_URL}/api/items?type=${type}&reportUserId=${encodeURIComponent(userId)}`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -261,7 +261,7 @@ export const getUserItems = async (userId: string, type: 'Lost' | 'Found'): Prom
 export const searchUsers = async (searchQuery: string): Promise<User[]> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/users/search?query=${encodeURIComponent(searchQuery)}`
+      `${API_BASE_URL}/api/users/search?query=${encodeURIComponent(searchQuery)}`
     );
 
     if (!response.ok) {
@@ -278,7 +278,7 @@ export const searchUsers = async (searchQuery: string): Promise<User[]> => {
 
 export const getUserById = async (userId: string): Promise<User> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`);
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}`);
 
     if (!response.ok) {
       const error = await response.json();

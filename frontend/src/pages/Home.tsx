@@ -33,13 +33,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import SupportIcon from '@mui/icons-material/Support';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import { searchUsers } from '../services/firestore';
-import { User } from '../types';
+import { searchUsers, searchItems } from '../services/firestore';
+import { User, Item } from '../types';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [searchResults, setSearchResults] = useState<{ users: User[]; items: Item[] }>({ users: [], items: [] });
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [mapModalOpen, setMapModalOpen] = useState(false);
@@ -48,19 +48,21 @@ const Home: React.FC = () => {
 
   const handleSearch = async (query: string) => {
     if (query.trim().length < 2) {
-      setSearchResults([]);
+      setSearchResults({ users: [], items: [] });
       setShowResults(false);
       return;
     }
 
     setIsSearching(true);
     try {
-      const results = await searchUsers(query);
-      setSearchResults(results);
+      // Search only for users on homepage
+      const users = await searchUsers(query);
+      
+      setSearchResults({ users, items: [] });
       setShowResults(true);
     } catch (error) {
       console.error('Error searching users:', error);
-      setSearchResults([]);
+      setSearchResults({ users: [], items: [] });
     } finally {
       setIsSearching(false);
     }
@@ -145,7 +147,7 @@ const Home: React.FC = () => {
                 mx: 'auto',
               }}
             >
-              Search for users, lost items, or browse through our community to help others
+                Search for users by name, email, or UWE ID to connect with fellow students
             </Typography>
           </Box>
 
@@ -195,7 +197,7 @@ const Home: React.FC = () => {
             />
             
             {/* Enhanced Search Results Dropdown */}
-            {showResults && searchResults.length > 0 && (
+            {showResults && searchResults.users.length > 0 && (
               <Paper
                 sx={{
                   position: 'absolute',
@@ -213,7 +215,7 @@ const Home: React.FC = () => {
                 }}
               >
                 <List sx={{ p: 0 }}>
-                  {searchResults.map((user) => (
+                  {searchResults.users.map((user) => (
                     <ListItem
                       key={user.id}
                       button
@@ -309,7 +311,7 @@ const Home: React.FC = () => {
               </Paper>
             )}
             
-            {showResults && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
+            {showResults && searchResults.users.length === 0 && searchQuery.trim().length >= 2 && (
               <Paper
                 sx={{
                   position: 'absolute',
