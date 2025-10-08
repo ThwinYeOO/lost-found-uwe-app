@@ -24,6 +24,11 @@ const API_BASE_URL = API_CONFIG.BASE_URL;
 // Items Operations
 export const addItem = async (item: Omit<Item, 'id'>) => {
   try {
+    console.log('=== ADD ITEM DEBUG ===');
+    console.log('API URL:', `${API_BASE_URL}/api/items`);
+    console.log('Item data being sent:', item);
+    console.log('Image URL in item:', item.imageUrl ? 'Present' : 'Missing');
+    
     const response = await fetch(`${API_BASE_URL}/api/items`, {
       method: 'POST',
       headers: {
@@ -32,12 +37,17 @@ export const addItem = async (item: Omit<Item, 'id'>) => {
       body: JSON.stringify(item),
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+
     if (!response.ok) {
       const error = await response.json();
+      console.error('API Error response:', error);
       throw new Error(error.details || 'Failed to add item');
     }
 
     const data = await response.json();
+    console.log('Item added successfully, ID:', data.id);
     return data.id;
   } catch (error) {
     console.error('Error adding item:', error);
@@ -149,7 +159,7 @@ export const createUser = async (userData: Omit<User, 'id'>): Promise<string> =>
 
 export const registerUser = async (userData: Omit<User, 'id'> & { password: string }) => {
   // Check if email already exists
-  const response = await fetch(`${API_BASE_URL}/users`);
+  const response = await fetch(`${API_BASE_URL}/api/users`);
   const users = await response.json();
   const exists = users.some((u: any) => u.email === userData.email);
   if (exists) {
@@ -340,24 +350,50 @@ export const getMessages = async (userId: string, chatWith?: string): Promise<Me
   }
 };
 
-// Profile Photo Upload
+// Profile Photo Upload (Base64 approach)
 export const uploadProfilePhoto = async (userId: string, file: File): Promise<string> => {
   try {
-    const formData = new FormData();
-    formData.append('profilePhoto', file);
-    formData.append('userId', userId);
-
-        const response = await fetch(`${API_BASE_URL}/api/upload-profile-photo`, {
-      method: 'POST',
-      body: formData,
+    console.log('Starting profile photo upload...');
+    console.log('User ID:', userId);
+    console.log('File details:', { name: file.name, size: file.size, type: file.type });
+    
+    // Convert file to base64 for Firebase Functions
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
     });
 
+    console.log('Base64 conversion completed, sending request...');
+    const response = await fetch(`${API_BASE_URL}/api/upload-profile-photo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: userId,
+        imageData: base64
+      }),
+    });
+
+    console.log('Response received:', response.status, response.statusText);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.details || 'Failed to upload profile photo');
+      let errorMessage = 'Failed to upload profile photo';
+      try {
+        const error = await response.json();
+        errorMessage = error.error || error.details || errorMessage;
+        console.error('Upload error response:', error);
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
+    console.log('Upload successful, response data:', data);
     return data.avatarUrl;
   } catch (error) {
     console.error('Error uploading profile photo:', error);
@@ -454,6 +490,65 @@ export const deleteItem = async (itemId: string): Promise<void> => {
   }
 };
 
+export const updateItem = async (itemId: string, itemData: Partial<Item>): Promise<Item> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/items/${itemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(itemData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update item');
+    }
+
+    const updatedItem = await response.json();
+    return updatedItem;
+  } catch (error) {
+    console.error('Error updating item:', error);
+    throw error;
+  }
+};
+
+export const createItem = async (itemData: Omit<Item, 'id'>): Promise<Item> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/items`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(itemData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create item');
+    }
+
+    const newItem = await response.json();
+    return newItem;
+  } catch (error) {
+    console.error('Error creating item:', error);
+    throw error;
+  }
+};
+
+export const getAllItems = async (): Promise<Item[]> => {
+  try {
+    const [lostItems, foundItems] = await Promise.all([
+      getItems('Lost'),
+      getItems('Found')
+    ]);
+    return [...lostItems, ...foundItems];
+  } catch (error) {
+    console.error('Error fetching all items:', error);
+    throw error;
+  }
+};
+
 export const getAllMessages = async (): Promise<Message[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/admin/messages`);
@@ -486,6 +581,97 @@ export const deleteMessage = async (messageId: string): Promise<void> => {
     }
   } catch (error) {
     console.error('Error deleting message:', error);
+    throw error;
+  }
+};
+
+export const markMessagesAsRead = async (userId: string, chatWith: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/messages/mark-as-read`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, chatWith }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to mark messages as read');
+    }
+
+    console.log('Messages marked as read successfully');
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    throw error;
+  }
+};
+
+export const updateMessageStatus = async (messageId: string, status: 'sent' | 'delivered' | 'seen'): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/messages/${messageId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update message status');
+    }
+
+    console.log(`Message ${messageId} status updated to ${status}`);
+  } catch (error) {
+    console.error('Error updating message status:', error);
+    throw error;
+  }
+};
+
+export const uploadItemImage = async (file: File): Promise<string> => {
+  try {
+    console.log('Starting image upload for file:', file.name);
+    console.log('File size:', file.size, 'bytes');
+    console.log('File type:', file.type);
+    
+    // Convert file to base64 for Firebase Functions
+    const base64Data = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        console.log('File converted to base64, length:', reader.result?.toString().length);
+        resolve(reader.result as string);
+      };
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    console.log('Sending upload request to:', `${API_BASE_URL}/api/upload-item-image`);
+    
+    const response = await fetch(`${API_BASE_URL}/api/upload-item-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageData: base64Data }),
+    });
+
+    console.log('Upload response status:', response.status);
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Upload error response:', error);
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const result = await response.json();
+    console.log('Upload successful, imageUrl:', result.imageUrl);
+    return result.imageUrl;
+  } catch (error) {
+    console.error('Error uploading item image:', error);
     throw error;
   }
 };

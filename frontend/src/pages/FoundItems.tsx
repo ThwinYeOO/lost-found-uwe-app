@@ -58,9 +58,11 @@ import {
   ExpandLess as ExpandLessIcon,
   CheckCircle as CheckCircleIcon,
   FindInPage as FoundInPageIcon,
+  Message as MessageIcon,
 } from '@mui/icons-material';
 import FoundItemForm, { FoundItemData } from '../components/FoundItemForm';
-import { getFoundItems, searchFoundItems, addItem } from '../services/firestore';
+import ChatBox from '../components/ChatBox';
+import { getFoundItems, searchFoundItems, addItem, uploadItemImage } from '../services/firestore';
 import { Item, User } from '../types';
 import { useNavigate } from 'react-router-dom';
 
@@ -75,6 +77,7 @@ const FoundItems: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'location'>('date');
@@ -98,6 +101,11 @@ const FoundItems: React.FC = () => {
     type: 'Found',
     reportUserId: '',
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [imageInputMode, setImageInputMode] = useState<'file' | 'url'>('file');
 
   const fetchFoundItems = async () => {
     try {
@@ -131,6 +139,31 @@ const FoundItems: React.FC = () => {
     fetchFoundItems();
   }, []);
 
+  // Add refresh when page becomes visible (user navigates back from admin dashboard)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, refreshing found items...');
+        fetchFoundItems();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also refresh when the page regains focus
+    const handleFocus = () => {
+      console.log('Page gained focus, refreshing found items...');
+      fetchFoundItems();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   useEffect(() => {
     // Get current user from localStorage
     const storedUser = localStorage.getItem('user');
@@ -160,7 +193,86 @@ const FoundItems: React.FC = () => {
     }
     setOpenForm(true);
   };
-  const handleCloseForm = () => setOpenForm(false);
+  const handleCloseForm = () => {
+    setOpenForm(false);
+    setNewItem({
+      name: '',
+      description: '',
+      locationLostFound: '',
+      dateLostFound: new Date(),
+      imageUrl: '',
+      phoneNumber: '',
+      reportName: '',
+      status: 'Found',
+      type: 'Found',
+      reportUserId: '',
+    });
+    setSelectedFile(null);
+    setImageUrl('');
+    setImagePreviewUrl('');
+    setImageInputMode('file');
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    console.log('File selected:', file);
+    
+    if (file) {
+      console.log('File details:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+      setSelectedFile(file);
+      console.log('File set successfully');
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setNewItem({ ...newItem, imageUrl: '' });
+  };
+
+  const handleImageUrlChange = (url: string) => {
+    setImageUrl(url);
+    if (url && isValidImageUrl(url)) {
+      setImagePreviewUrl(url);
+    } else {
+      setImagePreviewUrl('');
+    }
+  };
+
+  const isValidImageUrl = (url: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    const lowerUrl = url.toLowerCase();
+    return imageExtensions.some(ext => lowerUrl.includes(ext)) || 
+           lowerUrl.includes('data:image/') ||
+           lowerUrl.includes('imgur.com') ||
+           lowerUrl.includes('cloudinary.com') ||
+           lowerUrl.includes('amazonaws.com');
+  };
+
+  const handleImageModeChange = (mode: 'file' | 'url') => {
+    setImageInputMode(mode);
+    // Clear the other input when switching modes
+    if (mode === 'file') {
+      setImageUrl('');
+      setImagePreviewUrl('');
+    } else {
+      setSelectedFile(null);
+    }
+  };
 
   const handleContactOwner = (item: Item) => {
     setSelectedItem(item);
@@ -172,6 +284,15 @@ const FoundItems: React.FC = () => {
     setSelectedItem(null);
   };
 
+  const handleOpenChatDialog = () => {
+    setChatDialogOpen(true);
+    setContactDialogOpen(false);
+  };
+
+  const handleCloseChatDialog = () => {
+    setChatDialogOpen(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -181,12 +302,31 @@ const FoundItems: React.FC = () => {
     }
     
     try {
-      await addItem(newItem);
+      setUploading(true);
+      
+      // Prepare item data
+      let itemData = { ...newItem };
+      
+      // Handle image based on input mode
+      if (imageInputMode === 'file' && selectedFile) {
+        console.log('Uploading image file:', selectedFile.name);
+        const uploadedImageUrl = await uploadItemImage(selectedFile);
+        console.log('Image uploaded successfully:', uploadedImageUrl);
+        itemData.imageUrl = uploadedImageUrl;
+      } else if (imageInputMode === 'url' && imageUrl) {
+        console.log('Using provided image URL:', imageUrl);
+        itemData.imageUrl = imageUrl;
+      }
+      
+      console.log('Submitting item with data:', itemData);
+      await addItem(itemData);
       await fetchFoundItems(); // Refresh the list after adding a new item
       handleCloseForm();
     } catch (err) {
       setError('Failed to add item. Please try again.');
       console.error('Error adding item:', err);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -314,99 +454,332 @@ const FoundItems: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
-      {/* Hero Section */}
+      {/* 3D Explosive Hero Section */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%)',
+          minHeight: '80vh',
+          background: 'linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #0288d1 100%)',
           color: 'white',
-          py: { xs: 6, md: 8 },
+          py: { xs: 6, sm: 8, md: 12 },
           position: 'relative',
           overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `
+              radial-gradient(circle at 20% 80%, rgba(79, 195, 247, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(41, 182, 246, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(2, 136, 209, 0.3) 0%, transparent 50%),
+              url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+            `,
+            animation: 'explosiveFloat 8s ease-in-out infinite',
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url(/uwe-campus.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.1,
+            zIndex: 1,
+          },
         }}
       >
-        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
+        {/* 3D Floating Elements */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '15%',
+            left: '8%',
+            width: 120,
+            height: 120,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            animation: 'explosiveFloat 6s ease-in-out infinite',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '25%',
+            right: '12%',
+            width: 80,
+            height: 80,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            animation: 'explosiveFloat 7s ease-in-out infinite reverse',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '20%',
+            left: '15%',
+            width: 100,
+            height: 100,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            animation: 'explosiveFloat 9s ease-in-out infinite',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '60%',
+            right: '20%',
+            width: 60,
+            height: 60,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.3)',
+            animation: 'explosiveFloat 5s ease-in-out infinite reverse',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        />
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 }, position: 'relative', zIndex: 3 }}>
           <Fade in={true} timeout={1000}>
-            <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
+            <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 3 }}>
+              {/* 3D Explosive Title */}
               <Typography
-                variant="h2"
+                variant="h1"
                 component="h1"
                 sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  fontWeight: 900,
+                  mb: { xs: 2, sm: 3 },
+                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4.5rem', lg: '5.5rem' },
+                  background: 'linear-gradient(45deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                  px: { xs: 1, sm: 2, md: 0 },
+                  animation: 'explosiveGlow 3s ease-in-out infinite alternate',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Found Items Hub
               </Typography>
-              <Typography
-                variant="h5"
+              
+              {/* 3D Glassmorphism Subtitle */}
+              <Box
                 sx={{
+                  display: 'inline-block',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(25px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: 6,
+                  px: 4,
+                  py: 2,
                   mb: 4,
-                  opacity: 0.9,
-                  fontSize: { xs: '1.1rem', md: '1.3rem' },
-                  maxWidth: '600px',
-                  mx: 'auto',
+                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+                  animation: 'explosivePulse 4s ease-in-out infinite',
                 }}
               >
-                Help reunite lost items with their owners. Every found item is a chance to make someone's day better.
-              </Typography>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    mb: 0,
+                    fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' },
+                    color: 'rgba(255, 255, 255, 0.95)',
+                    fontWeight: 600,
+                    lineHeight: 1.4,
+                    textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  Help reunite lost items with their owners. Every found item is a chance to make someone's day better.
+                </Typography>
+              </Box>
               
-              {/* Statistics Cards */}
-              <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
-                <Grid item xs={12} sm={4}>
+              {/* 3D Explosive Statistics Cards */}
+              <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 4, sm: 6 }, justifyContent: 'center', px: { xs: 1, sm: 0 } }}>
+                <Grid item xs={6} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 3, sm: 4 },
                       textAlign: 'center',
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: 4,
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-8px) scale(1.05)',
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        border: '2px solid rgba(255, 255, 255, 0.5)',
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                        transition: 'left 0.6s',
+                      },
+                      '&:hover::before': {
+                        left: '100%',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h2" sx={{ 
+                      fontWeight: 900, 
+                      mb: { xs: 1, sm: 1.5 }, 
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                      background: 'linear-gradient(45deg, #ffffff 0%, #f0f0f0 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    }}>
                       {stats.totalItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="h6" sx={{ 
+                      opacity: 0.9, 
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                      fontWeight: 600,
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                    }}>
                       Items Found
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={6} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 3, sm: 4 },
                       textAlign: 'center',
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: 4,
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-8px) scale(1.05)',
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        border: '2px solid rgba(255, 255, 255, 0.5)',
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                        transition: 'left 0.6s',
+                      },
+                      '&:hover::before': {
+                        left: '100%',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h2" sx={{ 
+                      fontWeight: 900, 
+                      mb: { xs: 1, sm: 1.5 }, 
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                      background: 'linear-gradient(45deg, #4fc3f7 0%, #29b6f6 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    }}>
                       {stats.recentItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="h6" sx={{ 
+                      opacity: 0.9, 
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                      fontWeight: 600,
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                    }}>
                       This Week
                     </Typography>
                   </Paper>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={6} sm={4}>
                   <Paper
                     sx={{
-                      p: 3,
+                      p: { xs: 3, sm: 4 },
                       textAlign: 'center',
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: 4,
+                      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': {
+                        transform: 'translateY(-8px) scale(1.05)',
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                        border: '2px solid rgba(255, 255, 255, 0.5)',
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                        transition: 'left 0.6s',
+                      },
+                      '&:hover::before': {
+                        left: '100%',
+                      },
                     }}
                   >
-                    <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h2" sx={{ 
+                      fontWeight: 900, 
+                      mb: { xs: 1, sm: 1.5 }, 
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                      background: 'linear-gradient(45deg, #4caf50 0%, #2e7d32 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                    }}>
                       {stats.claimedItems}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="h6" sx={{ 
+                      opacity: 0.9, 
+                      fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                      fontWeight: 600,
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                    }}>
                       Claimed
                     </Typography>
                   </Paper>
@@ -566,12 +939,24 @@ const FoundItems: React.FC = () => {
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {filteredItems.length} {filteredItems.length === 1 ? 'Item' : 'Items'} Found
           </Typography>
-          <Chip
-            icon={<CheckCircleIcon />}
-            label={`${stats.claimedItems} claimed`}
-            color="success"
-            variant="outlined"
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<RefreshIcon />}
+              onClick={fetchFoundItems}
+              disabled={loading}
+              size="small"
+              sx={{ borderRadius: 2 }}
+            >
+              Refresh
+            </Button>
+            <Chip
+              icon={<CheckCircleIcon />}
+              label={`${stats.claimedItems} claimed`}
+              color="success"
+              variant="outlined"
+            />
+          </Box>
         </Box>
 
         {/* Login Prompt for Unauthenticated Users */}
@@ -893,22 +1278,126 @@ const FoundItems: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Image URL"
-                  value={newItem.imageUrl}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, imageUrl: e.target.value })
-                  }
-                  required
-                />
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                    Item Image *
+                  </Typography>
+                  
+                  {/* Image Input Mode Tabs */}
+                  <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+                    <Tabs 
+                      value={imageInputMode} 
+                      onChange={(e, newValue) => handleImageModeChange(newValue)}
+                      aria-label="image input mode tabs"
+                    >
+                      <Tab label="Upload File" value="file" />
+                      <Tab label="Image URL" value="url" />
+                    </Tabs>
+                  </Box>
+
+                  {/* File Upload Tab */}
+                  {imageInputMode === 'file' && (
+                    <Box>
+                      <input
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        id="found-item-image-upload"
+                        type="file"
+                        onChange={handleFileChange}
+                      />
+                      <label htmlFor="found-item-image-upload">
+                        <Button
+                          variant="outlined"
+                          component="span"
+                          startIcon={<AddIcon />}
+                          sx={{ mb: 1 }}
+                        >
+                          Choose Image
+                        </Button>
+                      </label>
+                      {selectedFile && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            Selected: {selectedFile.name}
+                          </Typography>
+                          <Button
+                            size="small"
+                            onClick={handleRemoveFile}
+                            sx={{ mt: 0.5 }}
+                          >
+                            Remove
+                          </Button>
+                        </Box>
+                      )}
+                      {!selectedFile && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            No image selected
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* URL Input Tab */}
+                  {imageInputMode === 'url' && (
+                    <Box>
+                      <TextField
+                        fullWidth
+                        label="Image URL"
+                        placeholder="https://example.com/image.jpg"
+                        value={imageUrl}
+                        onChange={(e) => handleImageUrlChange(e.target.value)}
+                        sx={{ mb: 1 }}
+                        helperText="Enter a direct link to an image (jpg, png, gif, etc.)"
+                      />
+                      
+                      {/* Image Preview */}
+                      {imagePreviewUrl && (
+                        <Box sx={{ mt: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                          <Typography variant="body2" color="success.main" sx={{ mb: 1 }}>
+                            ✓ Image Preview
+                          </Typography>
+                          <Box
+                            component="img"
+                            src={imagePreviewUrl}
+                            alt="Preview"
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: '200px',
+                              objectFit: 'contain',
+                              borderRadius: 1,
+                            }}
+                            onError={(e) => {
+                              console.error('Image failed to load:', imagePreviewUrl);
+                              setImagePreviewUrl('');
+                            }}
+                          />
+                        </Box>
+                      )}
+                      
+                      {imageUrl && !imagePreviewUrl && (
+                        <Typography variant="caption" color="error.main" sx={{ mt: 1, display: 'block' }}>
+                          Invalid image URL or image failed to load
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </Box>
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseForm}>Cancel</Button>
-            <Button type="submit" variant="contained" color="primary">
-              Submit
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              disabled={uploading}
+              startIcon={uploading ? <CircularProgress size={20} /> : null}
+            >
+              {uploading ? 'Uploading...' : 
+               (selectedFile || (imageInputMode === 'url' && imageUrl)) ? 'Submit with Image' : 'Submit'}
             </Button>
           </DialogActions>
         </form>
@@ -975,8 +1464,97 @@ const FoundItems: React.FC = () => {
           <Button onClick={handleCloseContactDialog}>
             Close
           </Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={handleOpenChatDialog}
+            startIcon={<MessageIcon />}
+          >
+            Start Chat
+          </Button>
         </DialogActions>
       </Dialog>
+      {/* 3D Explosive CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes explosiveFloat {
+            0%, 100% {
+              transform: translateY(0px) rotate(0deg) scale(1);
+            }
+            25% {
+              transform: translateY(-15px) rotate(2deg) scale(1.05);
+            }
+            50% {
+              transform: translateY(-25px) rotate(0deg) scale(1.1);
+            }
+            75% {
+              transform: translateY(-15px) rotate(-2deg) scale(1.05);
+            }
+          }
+          
+          @keyframes explosiveGlow {
+            0% {
+              text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            }
+            100% {
+              text-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.4), 0 0 60px rgba(255,255,255,0.2);
+            }
+          }
+          
+          @keyframes explosivePulse {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            }
+            50% {
+              transform: scale(1.02);
+              box-shadow: 0 16px 50px rgba(0, 0, 0, 0.3);
+            }
+          }
+          
+          @keyframes explosiveShimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+          
+          @keyframes explosiveBounce {
+            0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0) scale(1);
+            }
+            40% {
+              transform: translateY(-10px) scale(1.05);
+            }
+            60% {
+              transform: translateY(-5px) scale(1.02);
+            }
+          }
+        `
+      }} />
+
+      {/* Chat Dialog */}
+      {selectedItem && currentUser && (
+        <ChatBox
+          recipient={{
+            id: selectedItem.reportUserId,
+            name: selectedItem.reportName || 'Unknown User',
+            email: '', // We don't have email in Item interface
+            phoneNumber: selectedItem.phoneNumber,
+            uweId: '',
+            avatar: undefined,
+            role: 'user',
+            isActive: true,
+            createdAt: new Date(),
+            lastLogin: new Date()
+          }}
+          currentUser={currentUser}
+          open={chatDialogOpen}
+          onClose={handleCloseChatDialog}
+        />
+      )}
     </Box>
   );
 };

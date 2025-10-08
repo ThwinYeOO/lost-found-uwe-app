@@ -38,6 +38,8 @@ interface ChatHistoryProps {
   open: boolean;
   onClose: () => void;
   currentUser: User;
+  onConversationUpdate?: () => void;
+  onOpenChat?: (user: User) => void;
 }
 
 interface ConversationSummary {
@@ -46,7 +48,7 @@ interface ConversationSummary {
   unreadCount: number;
 }
 
-const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser }) => {
+const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser, onConversationUpdate, onOpenChat }) => {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [filteredConversations, setFilteredConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -176,6 +178,31 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
     loadConversations();
   };
 
+  const handleMessagesRead = () => {
+    // Refresh conversations when messages are marked as read
+    loadConversations();
+    if (onConversationUpdate) {
+      onConversationUpdate();
+    }
+  };
+
+  // Function to open chat with a specific user (for notifications)
+  const openChatWithUser = (user: User) => {
+    setSelectedUser(user);
+    setShowChatBox(true);
+    if (onOpenChat) {
+      onOpenChat(user);
+    }
+  };
+
+  // Expose the function to parent components
+  React.useEffect(() => {
+    if (onOpenChat) {
+      // This allows the parent to call openChatWithUser
+      (window as any).openChatWithUser = openChatWithUser;
+    }
+  }, [onOpenChat]);
+
   const formatTime = (timestamp: Date) => {
     const now = new Date();
     const messageTime = new Date(timestamp);
@@ -220,6 +247,24 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
 
   return (
     <>
+      <style>
+        {`
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-4px); }
+            60% { transform: translateY(-2px); }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+        `}
+      </style>
       <Dialog
         open={open}
         onClose={onClose}
@@ -240,23 +285,47 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
-          bgcolor: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
           color: 'white',
-          py: 2,
-          px: 3
+          py: 3,
+          px: 3,
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)',
+            animation: 'shimmer 3s ease-in-out infinite',
+          },
+          '@keyframes shimmer': {
+            '0%': { transform: 'translateX(-100%)' },
+            '100%': { transform: 'translateX(100%)' },
+          },
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative', zIndex: 1 }}>
             <Box sx={{ 
-              bgcolor: 'rgba(255,255,255,0.2)', 
-              borderRadius: 1, 
-              p: 0.5, 
-              mr: 1.5 
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)',
+              borderRadius: 2, 
+              p: 1, 
+              mr: 2,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.2)',
             }}>
-              <MessageIcon />
+              <MessageIcon sx={{ fontSize: 28 }} />
             </Box>
-            <Typography variant="h5" fontWeight="600">
-              Chat History
-            </Typography>
+            <Box>
+              <Typography variant="h4" fontWeight="700" sx={{ mb: 0.5 }}>
+                Chat History
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.9rem' }}>
+                Connect with other users
+              </Typography>
+            </Box>
           </Box>
           <IconButton 
             onClick={onClose} 
@@ -352,22 +421,65 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
                 </Typography>
               </Box>
             ) : (
-              <List sx={{ p: 0 }}>
+              <Box sx={{ p: { xs: 1, sm: 2 } }}>
                 {filteredConversations.map((conversation, index) => (
                 <Fade in={true} timeout={300 + index * 100} key={conversation.user.id}>
                   <Card 
                     sx={{ 
-                      mx: { xs: 1, sm: 2 }, 
-                      mb: 1, 
-                      borderRadius: 2,
-                      boxShadow: conversation.unreadCount > 0 ? 2 : 1,
-                      border: conversation.unreadCount > 0 ? '1px solid' : 'none',
-                      borderColor: conversation.unreadCount > 0 ? 'primary.main' : 'transparent',
-                      transition: 'all 0.2s ease-in-out',
+                      mb: 3, 
+                      borderRadius: 4,
+                      background: conversation.unreadCount > 0 
+                        ? 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.03) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: conversation.unreadCount > 0 
+                        ? '0 12px 40px rgba(25, 118, 210, 0.15), 0 0 0 1px rgba(25, 118, 210, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                        : '0 8px 30px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                      border: '1px solid',
+                      borderColor: conversation.unreadCount > 0 ? 'rgba(25, 118, 210, 0.2)' : 'rgba(0, 0, 0, 0.08)',
+                      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
                       '&:hover': {
-                        boxShadow: 3,
-                        transform: 'translateY(-1px)',
+                        boxShadow: conversation.unreadCount > 0 
+                          ? '0 20px 60px rgba(25, 118, 210, 0.25), 0 0 0 1px rgba(25, 118, 210, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                          : '0 16px 50px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+                        transform: 'translateY(-8px) scale(1.02)',
                         borderColor: 'primary.main',
+                      },
+                      '&:active': {
+                        transform: 'translateY(-4px) scale(1.01)',
+                      },
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '3px',
+                        background: conversation.unreadCount > 0 
+                          ? 'linear-gradient(90deg, #1976d2, #42a5f5, #1976d2)'
+                          : 'linear-gradient(90deg, transparent, rgba(25, 118, 210, 0.4), transparent)',
+                        opacity: conversation.unreadCount > 0 ? 1 : 0,
+                        transition: 'opacity 0.4s ease',
+                      },
+                      '&:hover::before': {
+                        opacity: 1,
+                      },
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease',
+                      },
+                      '&:hover::after': {
+                        opacity: 1,
                       },
                     }}
                   >
@@ -377,44 +489,63 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
                         '&:last-child': { pb: 0 }
                       }}
                     >
-                      <ListItem
-                        button
+                      <Box
                         onClick={() => handleConversationClick(conversation.user)}
                         sx={{
-                          py: { xs: 1.5, sm: 2 },
-                          px: { xs: 2, sm: 3 },
-                          borderRadius: 2,
-                          '&:hover': {
-                            bgcolor: 'transparent',
-                          },
+                          py: { xs: 2, sm: 3 },
+                          px: { xs: 3, sm: 4 },
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          position: 'relative',
+                          zIndex: 1,
                         }}
                       >
-                        <ListItemAvatar>
+                        {/* Enhanced Avatar with Status */}
+                        <Box sx={{ position: 'relative' }}>
                           <Badge
                             overlap="circular"
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             badgeContent={
-                              conversation.unreadCount > 0 ? (
+                              <Box
+                                sx={{
+                                  width: 16,
+                                  height: 16,
+                                  borderRadius: '50%',
+                                  background: conversation.unreadCount > 0 
+                                    ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+                                    : 'linear-gradient(135deg, #9e9e9e 0%, #616161 100%)',
+                                  border: '3px solid white',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
                                 <Box
                                   sx={{
-                                    width: 12,
-                                    height: 12,
+                                    width: 6,
+                                    height: 6,
                                     borderRadius: '50%',
-                                    bgcolor: 'primary.main',
-                                    border: '2px solid white',
+                                    bgcolor: 'white',
+                                    animation: conversation.unreadCount > 0 ? 'pulse 2s infinite' : 'none',
                                   }}
                                 />
-                              ) : null
+                              </Box>
                             }
                           >
                             <Avatar
                               sx={{
-                                bgcolor: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                                width: { xs: 44, sm: 52 },
-                                height: { xs: 44, sm: 52 },
-                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                width: { xs: 56, sm: 64 },
+                                height: { xs: 56, sm: 64 },
+                                fontSize: { xs: '1.2rem', sm: '1.4rem' },
                                 fontWeight: 'bold',
-                                boxShadow: 2,
+                                background: conversation.user.avatar 
+                                  ? 'none'
+                                  : 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                                boxShadow: '0 8px 25px rgba(0,0,0,0.15), 0 0 0 3px rgba(255,255,255,0.8)',
+                                border: '2px solid rgba(255,255,255,0.9)',
+                                transition: 'all 0.3s ease',
                               }}
                             >
                               {conversation.user.avatar ? (
@@ -433,103 +564,183 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
                               )}
                             </Avatar>
                           </Badge>
-                        </ListItemAvatar>
+                        </Box>
                         
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                        {/* Enhanced Content Area */}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          {/* Header Row */}
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between', 
+                            mb: 1.5 
+                          }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
                               <Typography 
-                                variant="subtitle1" 
-                                fontWeight={conversation.unreadCount > 0 ? 700 : 600}
+                                variant="h6" 
+                                fontWeight={conversation.unreadCount > 0 ? 800 : 700}
                                 color={conversation.unreadCount > 0 ? 'primary.main' : 'text.primary'}
                                 sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: 1,
-                                  fontSize: { xs: '0.9rem', sm: '1rem' }
-                                }}
-                              >
-                                <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                {conversation.user.name}
-                              </Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                {conversation.unreadCount > 0 && (
-                                  <Chip
-                                    label={conversation.unreadCount}
-                                    size="small"
-                                    color="primary"
-                                    sx={{ 
-                                      minWidth: 24, 
-                                      height: 24, 
-                                      fontSize: '0.7rem',
-                                      fontWeight: 'bold',
-                                      '& .MuiChip-label': {
-                                        px: 1
-                                      }
-                                    }}
-                                  />
-                                )}
-                                <Typography 
-                                  variant="caption" 
-                                  color="text.secondary"
-                                  sx={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    gap: 0.5,
-                                    fontSize: '0.75rem'
-                                  }}
-                                >
-                                  <TimeIcon sx={{ fontSize: 12 }} />
-                                  {formatTime(conversation.lastMessage.timestamp)}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          }
-                          secondary={
-                            <Box>
-                              <Typography
-                                variant="body2"
-                                color={conversation.unreadCount > 0 ? 'text.primary' : 'text.secondary'}
-                                sx={{
+                                  fontSize: { xs: '1rem', sm: '1.1rem' },
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
-                                  fontWeight: conversation.unreadCount > 0 ? 600 : 400,
-                                  mb: 0.5,
-                                  lineHeight: 1.4,
-                                  fontSize: { xs: '0.8rem', sm: '0.875rem' }
                                 }}
                               >
-                                {conversation.lastMessage.senderId === currentUser.id ? (
-                                  <Box component="span" sx={{ color: 'primary.main', fontWeight: 600 }}>
-                                    You: 
-                                  </Box>
-                                ) : null}
-                                {conversation.lastMessage.senderId === currentUser.id ? ' ' : ''}
-                                {truncateMessage(conversation.lastMessage.content)}
+                                {conversation.user.name}
                               </Typography>
+                              {conversation.unreadCount > 0 && (
+                                <Box
+                                  sx={{
+                                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                                    color: 'white',
+                                    borderRadius: '50%',
+                                    minWidth: 28,
+                                    height: 28,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 'bold',
+                                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                                    animation: 'bounce 1s infinite',
+                                  }}
+                                >
+                                  {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                                </Box>
+                              )}
+                            </Box>
+                            <Typography 
+                              variant="caption" 
+                              color="text.secondary"
+                              sx={{ 
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                whiteSpace: 'nowrap',
+                                ml: 2
+                              }}
+                            >
+                              {formatTime(conversation.lastMessage.timestamp)}
+                            </Typography>
+                          </Box>
+
+                          {/* Message Preview */}
+                          <Box sx={{ mb: 1.5 }}>
+                            <Typography
+                              variant="body2"
+                              color={conversation.unreadCount > 0 ? 'text.primary' : 'text.secondary'}
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                fontWeight: conversation.unreadCount > 0 ? 600 : 400,
+                                lineHeight: 1.5,
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              }}
+                            >
+                              {conversation.lastMessage.senderId === currentUser.id ? (
+                                <Box 
+                                  component="span" 
+                                  sx={{ 
+                                    color: 'primary.main', 
+                                    fontWeight: 700,
+                                    fontSize: '0.85rem',
+                                    background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.1) 0%, rgba(25, 118, 210, 0.05) 100%)',
+                                    px: 1,
+                                    py: 0.5,
+                                    borderRadius: 1,
+                                    border: '1px solid rgba(25, 118, 210, 0.2)',
+                                  }}
+                                >
+                                  You
+                                </Box>
+                              ) : (
+                                <Box 
+                                  component="span" 
+                                  sx={{ 
+                                    color: 'text.secondary',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 500,
+                                  }}
+                                >
+                                  {conversation.user.name.split(' ')[0]}
+                                </Box>
+                              )}
+                              <Box component="span" sx={{ color: 'text.secondary', mx: 0.5 }}>•</Box>
+                              {truncateMessage(conversation.lastMessage.content, 50)}
+                            </Typography>
+                          </Box>
+
+                          {/* Email and Status Row */}
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            gap: 2
+                          }}>
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              flex: 1,
+                              minWidth: 0
+                            }}>
+                              <EmailIcon sx={{ 
+                                fontSize: 14, 
+                                color: 'text.secondary',
+                                opacity: 0.7
+                              }} />
                               <Typography 
                                 variant="caption" 
                                 color="text.secondary"
                                 sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  gap: 0.5,
-                                  fontSize: '0.7rem'
+                                  fontSize: '0.8rem',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
-                                <EmailIcon sx={{ fontSize: 12 }} />
                                 {conversation.user.email}
                               </Typography>
                             </Box>
-                          }
-                        />
-                      </ListItem>
+                            <Box sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1 
+                            }}>
+                              <Box
+                                sx={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: '50%',
+                                  background: conversation.unreadCount > 0 
+                                    ? 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)'
+                                    : 'linear-gradient(135deg, #9e9e9e 0%, #616161 100%)',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                }}
+                              />
+                              <Typography 
+                                variant="caption" 
+                                color="text.secondary"
+                                sx={{ 
+                                  fontSize: '0.75rem',
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {conversation.unreadCount > 0 ? 'Active' : 'Offline'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
                     </CardContent>
                   </Card>
                 </Fade>
               ))}
-            </List>
+            </Box>
           )}
           </Box>
         </DialogContent>
@@ -541,6 +752,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ open, onClose, currentUser })
           currentUser={currentUser}
           open={showChatBox}
           onClose={handleCloseChatBox}
+          onMessagesRead={handleMessagesRead}
         />
       )}
     </>

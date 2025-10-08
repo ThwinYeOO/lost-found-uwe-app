@@ -298,41 +298,141 @@ const Profile: React.FC = () => {
 
   return (
     <>
+      {/* 3D Explosive Profile Container */}
       <Box
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
           py: 4,
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `
+              radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%)
+            `,
+            animation: 'explosiveFloat 10s ease-in-out infinite',
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url(/uwe-campus.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.05,
+            zIndex: 1,
+          },
         }}
       >
-        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 } }}>
+        {/* 3D Floating Elements */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '10%',
+            left: '5%',
+            width: 80,
+            height: 80,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.2)',
+            animation: 'explosiveFloat 8s ease-in-out infinite',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '20%',
+            right: '8%',
+            width: 60,
+            height: 60,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.2)',
+            animation: 'explosiveFloat 6s ease-in-out infinite reverse',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '15%',
+            left: '10%',
+            width: 70,
+            height: 70,
+            background: 'linear-gradient(45deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
+            borderRadius: '50%',
+            backdropFilter: 'blur(15px)',
+            border: '2px solid rgba(255,255,255,0.2)',
+            animation: 'explosiveFloat 7s ease-in-out infinite',
+            zIndex: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          }}
+        />
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 4 }, position: 'relative', zIndex: 3 }}>
           <Fade in timeout={800}>
             <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-            {/* Profile Information */}
+            {/* 3D Explosive Profile Information */}
             <Grid item xs={12} md={4}>
               <Paper 
-                elevation={8} 
+                elevation={12} 
                 sx={{ 
-                  p: { xs: 2, sm: 3, md: 4 }, 
-                  borderRadius: 4,
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  p: { xs: 3, sm: 4, md: 5 }, 
+                  borderRadius: 6,
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(25px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   position: 'relative',
                   overflow: 'hidden',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-8px) scale(1.02)',
+                    boxShadow: '0 30px 80px rgba(0, 0, 0, 0.3)',
+                    border: '2px solid rgba(255, 255, 255, 0.5)',
+                  },
                   '&::before': {
                     content: '""',
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #667eea, #764ba2)',
+                    height: '6px',
+                    background: 'linear-gradient(90deg, #667eea, #764ba2, #f093fb)',
+                    animation: 'explosiveShimmer 3s ease-in-out infinite',
+                  },
+                  '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: '-100%',
+                    width: '100%',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+                    transition: 'left 0.8s',
+                  },
+                  '&:hover::after': {
+                    left: '100%',
                   }
                 }}
               >
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                  <Box sx={{ position: 'relative', mb: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+                  <Box sx={{ position: 'relative', mb: 4 }}>
                     <Badge
                       overlap="circular"
                       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -340,17 +440,19 @@ const Profile: React.FC = () => {
                         <Tooltip title="Active User">
                           <Box
                             sx={{
-                              width: 20,
-                              height: 20,
+                              width: 24,
+                              height: 24,
                               borderRadius: '50%',
                               background: 'linear-gradient(45deg, #4caf50, #8bc34a)',
-                              border: '3px solid white',
+                              border: '4px solid white',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              boxShadow: '0 4px 20px rgba(76, 175, 80, 0.4)',
+                              animation: 'explosivePulse 2s ease-in-out infinite',
                             }}
                           >
-                            <CheckCircleIcon sx={{ fontSize: 12, color: 'white' }} />
+                            <CheckCircleIcon sx={{ fontSize: 14, color: 'white' }} />
                           </Box>
                         </Tooltip>
                       }
@@ -382,12 +484,17 @@ const Profile: React.FC = () => {
                             src={currentUser.avatar}
                             alt="Profile"
                             sx={{
-                              width: { xs: 100, sm: 120, md: 140, lg: 160 },
-                              height: { xs: 100, sm: 120, md: 140, lg: 160 },
+                              width: { xs: 120, sm: 140, md: 160, lg: 180 },
+                              height: { xs: 120, sm: 140, md: 160, lg: 180 },
                               borderRadius: '50%',
-                              border: { xs: '4px solid #fff', md: '6px solid #fff' },
-                              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-                              objectFit: 'cover'
+                              border: { xs: '6px solid rgba(255,255,255,0.8)', md: '8px solid rgba(255,255,255,0.8)' },
+                              boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2)',
+                              objectFit: 'cover',
+                              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                              '&:hover': {
+                                transform: 'scale(1.05) rotate(2deg)',
+                                boxShadow: '0 25px 80px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.3)',
+                              }
                             }}
                             onLoadStart={() => {
                               console.log('Image loading started:', currentUser.avatar);
@@ -424,36 +531,58 @@ const Profile: React.FC = () => {
                   </Box>
                   
                   <Typography 
-                    variant="h4" 
+                    variant="h3" 
                     gutterBottom 
                     sx={{ 
-                      fontWeight: 700, 
-                      color: 'text.primary', 
-                      mb: 1,
+                      fontWeight: 900, 
+                      mb: 2,
                       textAlign: 'center',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      background: 'linear-gradient(45deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%)',
                       backgroundClip: 'text',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
+                      textShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                      animation: 'explosiveGlow 3s ease-in-out infinite alternate',
+                      fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
                     }}
                   >
                     {currentUser?.name || 'N/A'}
                   </Typography>
                   
                   <Chip
-                    icon={<SchoolIcon />}
+                    icon={<SchoolIcon sx={{ fontSize: 20 }} />}
                     label="UWE Student"
-                    color="primary"
                     variant="filled"
                     sx={{ 
-                      mb: 2,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      mb: 3,
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(10px)',
                       color: 'white',
-                      fontWeight: 600,
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      px: 3,
+                      py: 1,
+                      borderRadius: 4,
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+                      }
                     }}
                   />
                   
-                  <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3, textAlign: 'center' }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.9)', 
+                      mb: 3, 
+                      textAlign: 'center',
+                      fontWeight: 600,
+                      textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                    }}
+                  >
                     {currentUser?.email || 'N/A'}
                   </Typography>
                   
@@ -482,7 +611,6 @@ const Profile: React.FC = () => {
                         <Button
                           variant="outlined"
                           component="span"
-                          startIcon={uploadingPhoto ? <CircularProgress size={16} /> : <CloudUploadIcon />}
                           disabled={uploadingPhoto}
                           fullWidth
                           sx={{ 
@@ -490,6 +618,8 @@ const Profile: React.FC = () => {
                             textTransform: 'none',
                             fontWeight: 600,
                             py: 1.5,
+                            px: 2,
+                            minWidth: 'auto',
                             borderWidth: 2,
                             '&:hover': {
                               borderWidth: 2,
@@ -499,7 +629,7 @@ const Profile: React.FC = () => {
                             transition: 'all 0.3s ease-in-out'
                           }}
                         >
-                          {uploadingPhoto ? 'Uploading...' : 'Choose File'}
+                          {uploadingPhoto ? <CircularProgress size={20} /> : <CloudUploadIcon sx={{ fontSize: 24 }} />}
                         </Button>
                       </label>
                       
@@ -507,7 +637,6 @@ const Profile: React.FC = () => {
                         <Button
                           variant="contained"
                           component="span"
-                          startIcon={uploadingPhoto ? <CircularProgress size={16} /> : <PhotoCameraIcon />}
                           disabled={uploadingPhoto}
                           fullWidth
                           sx={{ 
@@ -515,6 +644,8 @@ const Profile: React.FC = () => {
                             textTransform: 'none',
                             fontWeight: 600,
                             py: 1.5,
+                            px: 2,
+                            minWidth: 'auto',
                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                             '&:hover': {
                               background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
@@ -524,7 +655,7 @@ const Profile: React.FC = () => {
                             transition: 'all 0.3s ease-in-out'
                           }}
                         >
-                          {uploadingPhoto ? 'Uploading...' : 'Take Photo'}
+                          {uploadingPhoto ? <CircularProgress size={20} color="inherit" /> : <PhotoCameraIcon sx={{ fontSize: 24 }} />}
                         </Button>
                       </label>
                     </Box>
@@ -868,92 +999,118 @@ const Profile: React.FC = () => {
                   </Typography>
                 </Box>
               )}
-              {!loadingItems && !itemsError && lostItems.map((item, index) => (
-                <Fade in timeout={800 + index * 200} key={item.id}>
-                  <Card 
-                    sx={{ 
-                      mb: 3, 
-                      mx: 3,
-                      mt: index === 0 ? 3 : 0,
-                      borderRadius: 3,
-                      background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-                      },
-                      transition: 'all 0.3s ease-in-out',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <CardContent sx={{ p: 3 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', flex: 1 }}>
-                          {item.name}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          <Chip
-                            icon={item.status === 'Available' ? <CheckCircleIcon /> : <TimeIcon />}
-                            label={item.status}
-                            color={item.status === 'Available' ? 'success' : 'warning'}
-                            variant="filled"
-                            sx={{ fontWeight: 600 }}
-                          />
-                          <IconButton size="small">
-                            <MoreVertIcon />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                      
-                      <Grid container spacing={2} sx={{ mb: 2 }}>
-                        <Grid item xs={12} sm={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <TimeIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                            <Typography variant="body2" color="text.secondary">
-                              Date Lost: {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
+              {!loadingItems && !itemsError && (
+                <Grid container spacing={2} sx={{ p: 3 }}>
+                  {lostItems.map((item, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={item.id}>
+                      <Fade in timeout={800 + index * 100}>
+                        <Card 
+                          sx={{ 
+                            height: '100%',
+                            borderRadius: 3,
+                            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                              transform: 'translateY(-4px)',
+                              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                            },
+                            transition: 'all 0.3s ease-in-out',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          {item.imageUrl && (
+                            <Box sx={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%', 
+                                  objectFit: 'cover',
+                                }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 12,
+                                  right: 12,
+                                }}
+                              >
+                                <Chip
+                                  icon={<TimeIcon />}
+                                  label="Lost"
+                                  color="warning"
+                                  variant="filled"
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    backgroundColor: 'rgba(255, 152, 0, 0.9)',
+                                    color: 'white',
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                          
+                          <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontWeight: 700, 
+                                color: 'text.primary', 
+                                mb: 1.5,
+                                fontSize: '1.1rem',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              {item.name}
                             </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <LocationIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                            <Typography variant="body2" color="text.secondary">
-                              {item.locationLostFound}
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                      
-                      {item.phoneNumber && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <PhoneIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                          <Typography variant="body2" color="text.secondary">
-                            Contact: {item.phoneNumber}
-                          </Typography>
-                        </Box>
-                      )}
-                      
-                      {item.imageUrl && (
-                        <Box sx={{ mt: 2 }}>
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            style={{ 
-                              width: '100%', 
-                              height: '200px', 
-                              objectFit: 'cover',
-                              borderRadius: '12px',
-                              border: '1px solid rgba(0,0,0,0.1)',
-                              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                            }}
-                          />
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Fade>
-              ))}
+                            
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <TimeIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                                  {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
+                                </Typography>
+                              </Box>
+                              
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <LocationIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.secondary" 
+                                  sx={{ 
+                                    fontSize: '0.85rem',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.locationLostFound}
+                                </Typography>
+                              </Box>
+                              
+                              {item.phoneNumber && (
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <PhoneIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                                    {item.phoneNumber}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Fade>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </TabPanel>
 
             {/* Found Items Tab */}
@@ -979,101 +1136,127 @@ const Profile: React.FC = () => {
                   </Typography>
                 </Box>
               )}
-              {!loadingItems && !itemsError && foundItems.map((item, index) => (
-                <Fade in timeout={800 + index * 200} key={item.id}>
-                  <Card 
-                    sx={{ 
-                      mb: 3, 
-                      mx: 3,
-                      mt: index === 0 ? 3 : 0,
-                      borderRadius: 3,
-                      background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
-                      },
-                      transition: 'all 0.3s ease-in-out',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <CardContent sx={{ p: 3 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', flex: 1 }}>
-                          {item.name}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                          <Chip
-                            icon={item.status === 'Available' ? <CheckCircleIcon /> : <TimeIcon />}
-                            label={item.status}
-                            color={item.status === 'Available' ? 'success' : 'warning'}
-                            variant="filled"
-                            sx={{ fontWeight: 600 }}
-                          />
-                          <IconButton size="small">
-                            <MoreVertIcon />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                      
-                      <Grid container spacing={2} sx={{ mb: 2 }}>
-                        <Grid item xs={12} sm={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <TimeIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                            <Typography variant="body2" color="text.secondary">
-                              Date Found: {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
+              {!loadingItems && !itemsError && (
+                <Grid container spacing={2} sx={{ p: 3 }}>
+                  {foundItems.map((item, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={item.id}>
+                      <Fade in timeout={800 + index * 100}>
+                        <Card 
+                          sx={{ 
+                            height: '100%',
+                            borderRadius: 3,
+                            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                            '&:hover': {
+                              transform: 'translateY(-4px)',
+                              boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+                            },
+                            transition: 'all 0.3s ease-in-out',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          {item.imageUrl && (
+                            <Box sx={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                style={{ 
+                                  width: '100%', 
+                                  height: '100%', 
+                                  objectFit: 'cover',
+                                }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 12,
+                                  right: 12,
+                                }}
+                              >
+                                <Chip
+                                  icon={<CheckCircleIcon />}
+                                  label="Found"
+                                  color="success"
+                                  variant="filled"
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    backgroundColor: 'rgba(76, 175, 80, 0.9)',
+                                    color: 'white',
+                                  }}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                          
+                          <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontWeight: 700, 
+                                color: 'text.primary', 
+                                mb: 1.5,
+                                fontSize: '1.1rem',
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              {item.name}
                             </Typography>
-                          </Box>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                            <LocationIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                            <Typography variant="body2" color="text.secondary">
-                              {item.locationLostFound}
-                            </Typography>
-                          </Box>
-                        </Grid>
-                      </Grid>
-                      
-                      {item.phoneNumber && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <PhoneIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                          <Typography variant="body2" color="text.secondary">
-                            Contact: {item.phoneNumber}
-                          </Typography>
-                        </Box>
-                      )}
-                      
-                      {item.reportName && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <PersonIcon sx={{ mr: 1, color: 'primary.main', fontSize: 20 }} />
-                          <Typography variant="body2" color="text.secondary">
-                            Reporter: {item.reportName}
-                          </Typography>
-                        </Box>
-                      )}
-                      
-                      {item.imageUrl && (
-                        <Box sx={{ mt: 2 }}>
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            style={{ 
-                              width: '100%', 
-                              height: '200px', 
-                              objectFit: 'cover',
-                              borderRadius: '12px',
-                              border: '1px solid rgba(0,0,0,0.1)',
-                              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                            }}
-                          />
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Fade>
-              ))}
+                            
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <TimeIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                                  {item.dateLostFound ? new Date(item.dateLostFound).toLocaleDateString() : 'N/A'}
+                                </Typography>
+                              </Box>
+                              
+                              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                <LocationIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                <Typography 
+                                  variant="body2" 
+                                  color="text.secondary" 
+                                  sx={{ 
+                                    fontSize: '0.85rem',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.locationLostFound}
+                                </Typography>
+                              </Box>
+                              
+                              {item.phoneNumber && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                  <PhoneIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                                    {item.phoneNumber}
+                                  </Typography>
+                                </Box>
+                              )}
+                              
+                              {item.reportName && (
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <PersonIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                                    {item.reportName}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      </Fade>
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
             </TabPanel>
           </Paper>
         </Grid>
@@ -1174,6 +1357,67 @@ const Profile: React.FC = () => {
           Profile photo uploaded successfully!
         </Alert>
       </Snackbar>
+
+      {/* 3D Explosive CSS Animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes explosiveFloat {
+            0%, 100% {
+              transform: translateY(0px) rotate(0deg) scale(1);
+            }
+            25% {
+              transform: translateY(-15px) rotate(2deg) scale(1.05);
+            }
+            50% {
+              transform: translateY(-25px) rotate(0deg) scale(1.1);
+            }
+            75% {
+              transform: translateY(-15px) rotate(-2deg) scale(1.05);
+            }
+          }
+          
+          @keyframes explosiveGlow {
+            0% {
+              text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            }
+            100% {
+              text-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 40px rgba(255,255,255,0.4), 0 0 60px rgba(255,255,255,0.2);
+            }
+          }
+          
+          @keyframes explosivePulse {
+            0%, 100% {
+              transform: scale(1);
+              box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+            }
+            50% {
+              transform: scale(1.1);
+              box-shadow: 0 6px 30px rgba(76, 175, 80, 0.6);
+            }
+          }
+          
+          @keyframes explosiveShimmer {
+            0% {
+              transform: translateX(-100%);
+            }
+            100% {
+              transform: translateX(100%);
+            }
+          }
+          
+          @keyframes explosiveBounce {
+            0%, 20%, 50%, 80%, 100% {
+              transform: translateY(0) scale(1);
+            }
+            40% {
+              transform: translateY(-10px) scale(1.05);
+            }
+            60% {
+              transform: translateY(-5px) scale(1.02);
+            }
+          }
+        `
+      }} />
     </>
   );
 };

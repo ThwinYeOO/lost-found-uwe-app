@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const multer = require('multer');
+const { Storage } = require('@google-cloud/storage');
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ dotenv.config();
 // Initialize Firebase Admin
 admin.initializeApp();
 const db = admin.firestore();
+const firebaseStorage = admin.storage();
 
 const app = express();
 
@@ -52,12 +54,15 @@ const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
+    fieldSize: 10 * 1024 * 1024, // 10MB field size limit
   },
   fileFilter: function (req, file, cb) {
+    console.log('File filter called with:', file);
     // Check file type
-    if (file.mimetype.startsWith('image/')) {
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
+      console.log('File type rejected:', file.mimetype);
       cb(new Error('Only image files are allowed!'), false);
     }
   }
@@ -152,10 +157,22 @@ app.get('/items', async (req, res) => {
     const items = [];
     snapshot.forEach(doc => {
       const data = doc.data();
+      let dateLostFound = data.dateLostFound;
+      
+      // Handle different date formats
+      if (dateLostFound && typeof dateLostFound.toDate === 'function') {
+        dateLostFound = dateLostFound.toDate();
+      } else if (dateLostFound && typeof dateLostFound === 'string') {
+        dateLostFound = new Date(dateLostFound);
+      } else if (dateLostFound && dateLostFound.seconds) {
+        // Handle Firestore timestamp format
+        dateLostFound = new Date(dateLostFound.seconds * 1000);
+      }
+      
       items.push({
         id: doc.id,
         ...data,
-        dateLostFound: data.dateLostFound?.toDate()
+        dateLostFound: dateLostFound
       });
     });
     
@@ -240,10 +257,22 @@ app.get('/items/search', async (req, res) => {
       ].map(field => field.toLowerCase());
       
       if (searchFields.some(field => field.includes(query.toLowerCase()))) {
+        let dateLostFound = item.dateLostFound;
+        
+        // Handle different date formats
+        if (dateLostFound && typeof dateLostFound.toDate === 'function') {
+          dateLostFound = dateLostFound.toDate();
+        } else if (dateLostFound && typeof dateLostFound === 'string') {
+          dateLostFound = new Date(dateLostFound);
+        } else if (dateLostFound && dateLostFound.seconds) {
+          // Handle Firestore timestamp format
+          dateLostFound = new Date(dateLostFound.seconds * 1000);
+        }
+        
         items.push({
           id: doc.id,
           ...item,
-          dateLostFound: item.dateLostFound?.toDate()
+          dateLostFound: dateLostFound
         });
       }
     });
@@ -389,17 +418,121 @@ app.post('/messages', async (req, res) => {
     const messageData = {
       ...req.body,
       timestamp: admin.firestore.Timestamp.now(),
-      read: false
+      read: false,
+      status: 'sent', // Initial status
+      deliveredAt: null,
+      seenAt: null
     };
     
     console.log('Creating new message:', messageData);
     const docRef = await db.collection('messages').add(messageData);
     console.log('Message created with ID:', docRef.id);
     
-    res.status(201).json({ id: docRef.id, ...messageData });
+    // Update status to delivered immediately (since we're using real-time)
+    await docRef.update({
+      status: 'delivered',
+      deliveredAt: admin.firestore.Timestamp.now()
+    });
+    
+    const updatedMessage = {
+      id: docRef.id,
+      ...messageData,
+      status: 'delivered',
+      deliveredAt: new Date()
+    };
+    
+    res.status(201).json(updatedMessage);
   } catch (error) {
     console.error('Error creating message:', error);
     res.status(500).json({ error: 'Failed to create message', details: error.message });
+  }
+});
+
+// Mark messages as read
+app.put('/messages/mark-as-read', async (req, res) => {
+  try {
+    const { userId, chatWith } = req.body;
+    console.log(`Marking messages as read for user: ${userId} with: ${chatWith}`);
+    
+    if (!userId || !chatWith) {
+      return res.status(400).json({ error: 'userId and chatWith are required' });
+    }
+    
+    // Get all unread messages from the other user to this user
+    const messagesSnapshot = await db.collection('messages')
+      .where('senderId', '==', chatWith)
+      .where('recipientId', '==', userId)
+      .where('read', '==', false)
+      .get();
+    
+    if (messagesSnapshot.empty) {
+      return res.json({ message: 'No unread messages found' });
+    }
+    
+    // Update all unread messages to read and seen
+    const batch = db.batch();
+    const now = admin.firestore.Timestamp.now();
+    messagesSnapshot.forEach(doc => {
+      batch.update(doc.ref, { 
+        read: true,
+        status: 'seen',
+        seenAt: now
+      });
+    });
+    
+    await batch.commit();
+    
+    console.log(`Marked ${messagesSnapshot.size} messages as read`);
+    res.json({ 
+      success: true, 
+      message: `Marked ${messagesSnapshot.size} messages as read` 
+    });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Failed to mark messages as read', details: error.message });
+  }
+});
+
+// Update message status
+app.put('/messages/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    console.log(`Updating message ${id} status to: ${status}`);
+    
+    if (!['sent', 'delivered', 'seen'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be sent, delivered, or seen' });
+    }
+    
+    const messageRef = db.collection('messages').doc(id);
+    const messageDoc = await messageRef.get();
+    
+    if (!messageDoc.exists) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    
+    const updateData = { status };
+    
+    if (status === 'delivered') {
+      updateData.deliveredAt = admin.firestore.Timestamp.now();
+    } else if (status === 'seen') {
+      updateData.seenAt = admin.firestore.Timestamp.now();
+      updateData.read = true;
+    }
+    
+    await messageRef.update(updateData);
+    
+    console.log(`Message ${id} status updated to ${status}`);
+    res.json({ 
+      success: true, 
+      message: `Message status updated to ${status}`,
+      status,
+      timestamp: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating message status:', error);
+    res.status(500).json({ error: 'Failed to update message status', details: error.message });
   }
 });
 
@@ -486,37 +619,86 @@ app.get('/messages', async (req, res) => {
   }
 });
 
-// Profile photo upload endpoint (simplified for Cloud Functions)
-app.post('/upload-profile-photo', upload.single('profilePhoto'), async (req, res) => {
+// Profile photo upload endpoint (base64 approach)
+app.post('/upload-profile-photo', async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    const { userId } = req.body;
+    console.log('Upload request received');
+    console.log('Request body keys:', Object.keys(req.body));
+    
+    const { userId, imageData } = req.body;
+    
     if (!userId) {
+      console.log('No userId provided');
       return res.status(400).json({ error: 'User ID is required' });
     }
-
-    // For Cloud Functions, we'll store the file in Firebase Storage
-    // For now, we'll just return a placeholder URL
-    const fileUrl = `https://storage.googleapis.com/your-bucket/profile-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpg`;
     
-    // Update user's avatar in Firestore
-    await db.collection('users').doc(userId).update({
-      avatar: fileUrl
-    });
+    if (!imageData) {
+      console.log('No image data provided');
+      return res.status(400).json({ error: 'Image data is required' });
+    }
 
-    console.log(`Profile photo uploaded for user ${userId}: ${fileUrl}`);
+    console.log(`Processing upload for user: ${userId}`);
+    console.log(`Image data length: ${imageData.length} characters`);
+
+    // Validate that it's a base64 image
+    if (!imageData.startsWith('data:image/')) {
+      return res.status(400).json({ error: 'Invalid image format. Please provide a valid image file.' });
+    }
+
+    // Update user's avatar in Firestore with base64 data
+    console.log('Updating user avatar in Firestore...');
+    await db.collection('users').doc(userId).update({
+      avatar: imageData
+    });
+    console.log('User avatar updated in Firestore');
     
     res.json({
       success: true,
       message: 'Profile photo uploaded successfully',
-      avatarUrl: fileUrl
+      avatarUrl: imageData
     });
   } catch (error) {
     console.error('Error uploading profile photo:', error);
     res.status(500).json({ error: 'Failed to upload profile photo', details: error.message });
+  }
+});
+
+// Item image upload endpoint
+app.post('/api/upload-item-image', async (req, res) => {
+  try {
+    console.log('Item image upload request received');
+    console.log('Request body keys:', Object.keys(req.body));
+    
+    const { imageData } = req.body;
+    
+    if (!imageData) {
+      console.log('No image data provided');
+      return res.status(400).json({ error: 'Image data is required' });
+    }
+
+    console.log(`Processing item image upload`);
+    console.log(`Image data length: ${imageData.length} characters`);
+
+    // Validate that it's a base64 image
+    if (!imageData.startsWith('data:image/')) {
+      console.log('Invalid image format');
+      return res.status(400).json({ error: 'Invalid image format. Must be base64 encoded image.' });
+    }
+
+    // For now, we'll return the base64 data as the URL
+    // In a production environment, you might want to upload to a cloud storage service
+    const imageUrl = imageData;
+
+    console.log(`Item image processed successfully`);
+    
+    res.json({
+      success: true,
+      message: 'Item image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Error uploading item image:', error);
+    res.status(500).json({ error: 'Failed to upload item image', details: error.message });
   }
 });
 
@@ -537,27 +719,75 @@ app.get('/admin/dashboard', async (req, res) => {
     const messages = [];
 
     usersSnapshot.forEach(doc => {
+      const data = doc.data();
+      
+      // Handle createdAt timestamp
+      let createdAt = data.createdAt;
+      if (createdAt && typeof createdAt.toDate === 'function') {
+        createdAt = createdAt.toDate();
+      } else if (createdAt && typeof createdAt === 'string') {
+        createdAt = new Date(createdAt);
+      } else if (createdAt && createdAt.seconds) {
+        createdAt = new Date(createdAt.seconds * 1000);
+      }
+      
+      // Handle lastLogin timestamp
+      let lastLogin = data.lastLogin;
+      if (lastLogin && typeof lastLogin.toDate === 'function') {
+        lastLogin = lastLogin.toDate();
+      } else if (lastLogin && typeof lastLogin === 'string') {
+        lastLogin = new Date(lastLogin);
+      } else if (lastLogin && lastLogin.seconds) {
+        lastLogin = new Date(lastLogin.seconds * 1000);
+      }
+      
       users.push({
         id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        lastLogin: doc.data().lastLogin?.toDate()
+        ...data,
+        createdAt: createdAt,
+        lastLogin: lastLogin
       });
     });
 
     itemsSnapshot.forEach(doc => {
+      const data = doc.data();
+      let dateLostFound = data.dateLostFound;
+      
+      // Handle different date formats
+      if (dateLostFound && typeof dateLostFound.toDate === 'function') {
+        dateLostFound = dateLostFound.toDate();
+      } else if (dateLostFound && typeof dateLostFound === 'string') {
+        dateLostFound = new Date(dateLostFound);
+      } else if (dateLostFound && dateLostFound.seconds) {
+        // Handle Firestore timestamp format
+        dateLostFound = new Date(dateLostFound.seconds * 1000);
+      }
+      
       items.push({
         id: doc.id,
-        ...doc.data(),
-        dateLostFound: doc.data().dateLostFound?.toDate()
+        ...data,
+        dateLostFound: dateLostFound
       });
     });
 
     messagesSnapshot.forEach(doc => {
+      const data = doc.data();
+      let timestamp = data.timestamp;
+      
+      // Handle different timestamp formats
+      if (timestamp && typeof timestamp.toDate === 'function') {
+        timestamp = timestamp.toDate();
+      } else if (timestamp && typeof timestamp === 'string') {
+        timestamp = new Date(timestamp);
+      } else if (timestamp && timestamp.seconds) {
+        // Handle Firestore timestamp format
+        timestamp = new Date(timestamp.seconds * 1000);
+      }
+      
       messages.push({
         id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate()
+        ...data,
+        timestamp: timestamp
       });
     });
 
@@ -702,6 +932,80 @@ app.put('/admin/users/:id/status', async (req, res) => {
 });
 
 // Admin item management routes
+app.post('/admin/items', async (req, res) => {
+  try {
+    const itemData = req.body;
+    console.log('Creating new item:', itemData);
+    
+    // Validate required fields
+    if (!itemData.name || !itemData.description || !itemData.type || !itemData.locationLostFound) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Add timestamp
+    const newItem = {
+      ...itemData,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    // Create the item
+    const docRef = await db.collection('items').add(newItem);
+    
+    console.log('Item created successfully with ID:', docRef.id);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Item created successfully',
+      id: docRef.id,
+      ...newItem
+    });
+  } catch (error) {
+    console.error('Error creating item:', error);
+    res.status(500).json({ error: 'Failed to create item', details: error.message });
+  }
+});
+
+app.put('/admin/items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const itemData = req.body;
+    console.log('Updating item with ID:', id);
+    
+    // Check if item exists
+    const itemRef = db.collection('items').doc(id);
+    const itemDoc = await itemRef.get();
+    
+    if (!itemDoc.exists) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    // Update the item
+    const updatedData = {
+      ...itemData,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+    
+    await itemRef.update(updatedData);
+    
+    // Get the updated item
+    const updatedDoc = await itemRef.get();
+    const updatedItem = {
+      id: updatedDoc.id,
+      ...updatedDoc.data()
+    };
+    
+    console.log('Item updated successfully');
+    res.json({ 
+      success: true, 
+      message: 'Item updated successfully',
+      ...updatedItem
+    });
+  } catch (error) {
+    console.error('Error updating item:', error);
+    res.status(500).json({ error: 'Failed to update item', details: error.message });
+  }
+});
+
 app.delete('/admin/items/:id', async (req, res) => {
   try {
     const { id } = req.params;

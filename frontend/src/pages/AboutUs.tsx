@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Typography,
@@ -18,6 +18,13 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -37,6 +44,52 @@ import {
 } from '@mui/icons-material';
 
 const AboutUs: React.FC = () => {
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const handleEmailButtonClick = () => {
+    setEmailDialogOpen(true);
+  };
+
+  const handleEmailDialogClose = () => {
+    setEmailDialogOpen(false);
+    setEmailForm({ name: '', email: '', subject: '', message: '' });
+  };
+
+  const handleEmailFormChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEmailForm(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleEmailSubmit = () => {
+    if (!emailForm.name || !emailForm.email || !emailForm.subject || !emailForm.message) {
+      setSnackbarMessage('Please fill in all fields');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    // Create mailto link
+    const mailtoLink = `mailto:security@uwe.ac.uk?subject=${encodeURIComponent(emailForm.subject)}&body=${encodeURIComponent(
+      `Name: ${emailForm.name}\nEmail: ${emailForm.email}\n\nMessage:\n${emailForm.message}`
+    )}`;
+    
+    // Open email client
+    window.open(mailtoLink);
+    
+    setSnackbarMessage('Email client opened successfully');
+    setSnackbarOpen(true);
+    handleEmailDialogClose();
+  };
+
   return (
     <Box>
       {/* Hero Section */}
@@ -468,6 +521,7 @@ const AboutUs: React.FC = () => {
               variant="outlined"
               size="large"
               startIcon={<EmailIcon />}
+              onClick={handleEmailButtonClick}
               sx={{
                 borderColor: 'white',
                 color: 'white',
@@ -487,6 +541,154 @@ const AboutUs: React.FC = () => {
           </Box>
         </Box>
       </Container>
+
+      {/* Email Dialog */}
+      <Dialog 
+        open={emailDialogOpen} 
+        onClose={handleEmailDialogClose}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          textAlign: 'center',
+          py: 3,
+          fontSize: '1.5rem',
+          fontWeight: 700,
+        }}>
+          <EmailIcon sx={{ mr: 2, verticalAlign: 'middle' }} />
+          Contact UWE Security
+        </DialogTitle>
+        <DialogContent sx={{ p: 4 }}>
+          <Typography variant="body1" sx={{ mb: 3, color: '#666', textAlign: 'center' }}>
+            Fill out the form below and we'll open your email client to send your message to our security team.
+          </Typography>
+          
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Your Name"
+                value={emailForm.name}
+                onChange={handleEmailFormChange('name')}
+                variant="outlined"
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Your Email"
+                type="email"
+                value={emailForm.email}
+                onChange={handleEmailFormChange('email')}
+                variant="outlined"
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Subject"
+                value={emailForm.subject}
+                onChange={handleEmailFormChange('subject')}
+                variant="outlined"
+                required
+                placeholder="e.g., Lost Item Inquiry - iPhone 14"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Message"
+                value={emailForm.message}
+                onChange={handleEmailFormChange('message')}
+                variant="outlined"
+                multiline
+                rows={6}
+                required
+                placeholder="Please provide details about your inquiry, including item description, location, date, and any other relevant information..."
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                  }
+                }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 2 }}>
+          <Button
+            onClick={handleEmailDialogClose}
+            variant="outlined"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEmailSubmit}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: 2,
+              px: 4,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+              },
+            }}
+          >
+            <EmailIcon sx={{ mr: 1 }} />
+            Open Email Client
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarMessage.includes('successfully') ? 'success' : 'warning'}
+          sx={{ borderRadius: 2 }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

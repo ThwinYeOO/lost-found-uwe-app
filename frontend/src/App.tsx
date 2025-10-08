@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
@@ -6,6 +6,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AppRouter from './components/AppRouter';
 import { AdminProvider } from './contexts/AdminContext';
+import { NotificationProvider } from './contexts/NotificationContext';
+import NotificationManager from './components/NotificationManager';
+import { Message, User } from './types';
 
 // Create theme with mobile-first approach
 const theme = createTheme({
@@ -119,14 +122,65 @@ const theme = createTheme({
 });
 
 function App() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Get current user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
+    }
+
+    // Listen for storage changes (when user logs in/out in another tab)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        if (e.newValue) {
+          try {
+            setCurrentUser(JSON.parse(e.newValue));
+          } catch (error) {
+            console.error('Error parsing user from storage:', error);
+            setCurrentUser(null);
+          }
+        } else {
+          setCurrentUser(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleViewMessage = (message: Message) => {
+    // Open chat with the sender
+    if ((window as any).openChatWithUser) {
+      // Get sender user data
+      const senderUser = {
+        id: message.senderId,
+        name: message.senderName || 'Unknown User',
+        email: message.senderEmail || '',
+        avatar: message.senderAvatar || '',
+      };
+      (window as any).openChatWithUser(senderUser);
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <CssBaseline />
         <AdminProvider>
-          <Router>
-            <AppRouter />
-          </Router>
+          <NotificationProvider currentUser={currentUser}>
+            <Router>
+              <AppRouter />
+              <NotificationManager onViewMessage={handleViewMessage} />
+            </Router>
+          </NotificationProvider>
         </AdminProvider>
       </LocalizationProvider>
     </ThemeProvider>

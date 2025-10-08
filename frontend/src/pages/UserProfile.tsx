@@ -322,9 +322,47 @@ const UserProfile: React.FC = () => {
                   variant="contained"
                   startIcon={<MessageIcon />}
                   onClick={handleOpenChat}
-                  sx={{ flex: 1 }}
+                  sx={{ 
+                    flex: 1,
+                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                    borderRadius: 3,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    py: 1.5,
+                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+                      boxShadow: '0 6px 20px rgba(25, 118, 210, 0.4)',
+                      transform: 'translateY(-2px)',
+                    },
+                    '&:active': {
+                      transform: 'translateY(0px)',
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)',
+                    },
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: '-100%',
+                      width: '100%',
+                      height: '100%',
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                      transition: 'left 0.5s',
+                    },
+                    '&:hover::before': {
+                      left: '100%',
+                    },
+                  }}
                 >
-                  Start Chat
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MessageIcon sx={{ fontSize: 20 }} />
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      Start Chat
+                    </Typography>
+                  </Box>
                 </Button>
                 <Button
                   variant="outlined"

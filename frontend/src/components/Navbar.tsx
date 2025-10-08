@@ -243,16 +243,39 @@ const Navbar: React.FC = () => {
                       onClick={() => setChatHistoryOpen(true)}
                       sx={{
                         color: 'white',
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                        backdropFilter: 'blur(15px)',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        borderRadius: 2,
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        position: 'relative',
+                        overflow: 'hidden',
                         '&:hover': {
-                          background: 'rgba(255, 255, 255, 0.2)',
-                          transform: 'scale(1.1)',
+                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.15) 100%)',
+                          transform: 'scale(1.1) translateY(-2px)',
+                          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                          border: '1px solid rgba(255, 255, 255, 0.4)',
+                        },
+                        '&:active': {
+                          transform: 'scale(1.05) translateY(0px)',
+                        },
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                          transition: 'left 0.6s',
+                        },
+                        '&:hover::before': {
+                          left: '100%',
                         },
                       }}
                     >
-                      <MessageIcon />
+                      <MessageIcon sx={{ fontSize: 22 }} />
                     </IconButton>
                   </Tooltip>
                   
@@ -499,6 +522,10 @@ const Navbar: React.FC = () => {
           open={chatHistoryOpen}
           onClose={() => setChatHistoryOpen(false)}
           currentUser={currentUser}
+          onOpenChat={(user) => {
+            // This will be handled by the global function
+            console.log('Opening chat with:', user);
+          }}
         />
       )}
     </>

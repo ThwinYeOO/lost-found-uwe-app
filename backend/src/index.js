@@ -486,6 +486,30 @@ app.post('/api/upload-profile-photo', upload.single('profilePhoto'), async (req,
   }
 });
 
+// Item image upload endpoint
+app.post('/api/upload-item-image', upload.single('itemImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Generate the file URL
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+    console.log(`Item image uploaded: ${fileUrl}`);
+    
+    res.json({
+      success: true,
+      message: 'Item image uploaded successfully',
+      imageUrl: fileUrl
+    });
+  } catch (error) {
+    console.error('Error uploading item image:', error);
+    res.status(500).json({ error: 'Failed to upload item image', details: error.message });
+  }
+});
+
 // Admin routes
 app.get('/api/admin/dashboard', async (req, res) => {
   try {

@@ -31,6 +31,7 @@ export interface Message {
   senderId: string;
   senderName: string;
   senderEmail: string;
+  senderAvatar?: string;
   recipientId: string;
   recipientName: string;
   recipientEmail: string;
@@ -42,6 +43,12 @@ export interface Message {
   deliveredAt?: Date;
   seenAt?: Date;
   messageType?: 'chat' | 'email'; // Distinguish between chat and email messages
+  attachment?: {
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+    data: string; // Base64 encoded data
+  };
 }
 
 export interface AdminStats {

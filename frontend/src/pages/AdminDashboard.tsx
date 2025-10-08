@@ -26,6 +26,12 @@ import {
   Tab,
   TextField,
   InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   People as PeopleIcon,
@@ -37,9 +43,10 @@ import {
   Edit as EditIcon,
   AdminPanelSettings as AdminIcon,
   Person as PersonIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { getAdminDashboard, deleteUser, updateUserRole, updateUserStatus, deleteItem, getAllMessages, deleteMessage } from '../services/firestore';
+import { getAdminDashboard, deleteUser, updateUserRole, updateUserStatus, deleteItem, getAllMessages, deleteMessage, getAllItems, createItem, updateItem } from '../services/firestore';
 import { User, Item, Message, AdminDashboardData } from '../types';
 
 interface TabPanelProps {
@@ -74,6 +81,22 @@ const AdminDashboard: React.FC = () => {
     type: 'user',
     id: '',
     name: ''
+  });
+  const [itemDialog, setItemDialog] = useState<{ open: boolean; mode: 'create' | 'edit'; item?: Item }>({
+    open: false,
+    mode: 'create'
+  });
+  const [itemForm, setItemForm] = useState({
+    name: '',
+    description: '',
+    type: 'Lost' as 'Lost' | 'Found',
+    locationLostFound: '',
+    dateLostFound: '',
+    status: 'Pending',
+    phoneNumber: '',
+    reportName: '',
+    reportUserId: '',
+    imageUrl: ''
   });
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -140,6 +163,66 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       setError('Failed to update user status');
       console.error(err);
+    }
+  };
+
+  const handleItemFormChange = (field: string) => (event: any) => {
+    setItemForm(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleCreateItem = () => {
+    setItemForm({
+      name: '',
+      description: '',
+      type: 'Lost',
+      locationLostFound: '',
+      dateLostFound: '',
+      status: 'Pending',
+      phoneNumber: '',
+      reportName: '',
+      reportUserId: '',
+      imageUrl: ''
+    });
+    setItemDialog({ open: true, mode: 'create' });
+  };
+
+  const handleEditItem = (item: Item) => {
+    setItemForm({
+      name: item.name,
+      description: item.description,
+      type: item.type as 'Lost' | 'Found',
+      locationLostFound: item.locationLostFound,
+      dateLostFound: item.dateLostFound ? new Date(item.dateLostFound).toISOString().split('T')[0] : '',
+      status: item.status,
+      phoneNumber: item.phoneNumber || '',
+      reportName: item.reportName || '',
+      reportUserId: item.reportUserId || '',
+      imageUrl: item.imageUrl || ''
+    });
+    setItemDialog({ open: true, mode: 'edit', item });
+  };
+
+  const handleItemSubmit = async () => {
+    try {
+      const itemData = {
+        ...itemForm,
+        dateLostFound: itemForm.dateLostFound ? new Date(itemForm.dateLostFound) : new Date()
+      };
+
+      if (itemDialog.mode === 'create') {
+        await createItem(itemData);
+      } else if (itemDialog.mode === 'edit' && itemDialog.item) {
+        await updateItem(itemDialog.item.id!, itemData);
+      }
+
+      setItemDialog({ open: false, mode: 'create' });
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Error saving item:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save item');
     }
   };
 
@@ -395,6 +478,17 @@ const AdminDashboard: React.FC = () => {
 
         {/* Items Tab */}
         <TabPanel value={tabValue} index={1}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Items Management</Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateItem}
+              sx={{ borderRadius: 2 }}
+            >
+              Add New Item
+            </Button>
+          </Box>
           <TableContainer>
             <Table>
               <TableHead>
@@ -437,17 +531,27 @@ const AdminDashboard: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={() => setDeleteDialog({
-                          open: true,
-                          type: 'item',
-                          id: item.id!,
-                          name: item.name
-                        })}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditItem(item)}
+                          size="small"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => setDeleteDialog({
+                            open: true,
+                            type: 'item',
+                            id: item.id!,
+                            name: item.name
+                          })}
+                          size="small"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -528,9 +632,168 @@ const AdminDashboard: React.FC = () => {
             Delete
           </Button>
         </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
+        </Dialog>
 
-export default AdminDashboard;
+        {/* Item Form Dialog */}
+        <Dialog 
+          open={itemDialog.open} 
+          onClose={() => setItemDialog({ open: false, mode: 'create' })}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)',
+            }
+          }}
+        >
+          <DialogTitle sx={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            textAlign: 'center',
+            py: 3,
+            fontSize: '1.5rem',
+            fontWeight: 700,
+          }}>
+            {itemDialog.mode === 'create' ? 'Create New Item' : 'Edit Item'}
+          </DialogTitle>
+          <DialogContent sx={{ p: 4 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Item Name"
+                  value={itemForm.name}
+                  onChange={handleItemFormChange('name')}
+                  variant="outlined"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth required>
+                  <InputLabel>Type</InputLabel>
+                  <Select
+                    value={itemForm.type}
+                    onChange={handleItemFormChange('type')}
+                    label="Type"
+                  >
+                    <MenuItem value="Lost">Lost</MenuItem>
+                    <MenuItem value="Found">Found</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description"
+                  value={itemForm.description}
+                  onChange={handleItemFormChange('description')}
+                  variant="outlined"
+                  multiline
+                  rows={3}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Location"
+                  value={itemForm.locationLostFound}
+                  onChange={handleItemFormChange('locationLostFound')}
+                  variant="outlined"
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Date"
+                  type="date"
+                  value={itemForm.dateLostFound}
+                  onChange={handleItemFormChange('dateLostFound')}
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={itemForm.status}
+                    onChange={handleItemFormChange('status')}
+                    label="Status"
+                  >
+                    <MenuItem value="Pending">Pending</MenuItem>
+                    <MenuItem value="Resolved">Resolved</MenuItem>
+                    <MenuItem value="Claimed">Claimed</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Contact Phone"
+                  value={itemForm.phoneNumber}
+                  onChange={handleItemFormChange('phoneNumber')}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Reporter Name"
+                  value={itemForm.reportName}
+                  onChange={handleItemFormChange('reportName')}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Reporter User ID"
+                  value={itemForm.reportUserId}
+                  onChange={handleItemFormChange('reportUserId')}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Image URL"
+                  value={itemForm.imageUrl}
+                  onChange={handleItemFormChange('imageUrl')}
+                  variant="outlined"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, gap: 2 }}>
+            <Button
+              onClick={() => setItemDialog({ open: false, mode: 'create' })}
+              variant="outlined"
+              sx={{ borderRadius: 2 }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleItemSubmit}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: 2,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                },
+              }}
+            >
+              {itemDialog.mode === 'create' ? 'Create Item' : 'Update Item'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    );
+  };
+
+  export default AdminDashboard;
